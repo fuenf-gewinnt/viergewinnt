@@ -3,4 +3,4 @@
 
 **Gruppe 5:** Cornesse, Efinger, Männle, Oberste, Steger
 
-**Team:** FUNGI
+**Team:** fungi
