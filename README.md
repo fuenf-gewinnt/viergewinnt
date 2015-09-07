@@ -1,5 +1,6 @@
 # Vier Gewinnt #
-## Software-Entwicklungsprojek ##
+## Software-Entwicklungsprojekt ##
 
 **Gruppe 5:** Cornesse, Efinger, Männle, Oberste, Steger
+
 **Team:** FUNGI
