@@ -8,6 +8,10 @@ public class Test {
 		System.out.println("Hallo");
 		// wooooow, es funktiommguiniejjrt !
 		//hallo cool
+		
+		// Irena trinkt gerade einen Kaffee :) 
+		int x = 1+1;
+		System.out.println(x);
 	}
 
 }
