@@ -1,0 +1,213 @@
+package pusher;
+
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+
+import javax.crypto.Mac;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import com.pusher.client.AuthorizationFailureException;
+import com.pusher.client.Authorizer;
+import com.pusher.client.Pusher;
+import com.pusher.client.PusherOptions;
+import com.pusher.client.channel.PrivateChannel;
+import com.pusher.client.channel.PrivateChannelEventListener;
+import com.pusher.client.connection.ConnectionEventListener;
+import com.pusher.client.connection.ConnectionStateChange;
+
+import ki.Intelligence;
+
+public class PusherImpl implements ConnectionEventListener, PrivateChannelEventListener, PusherController {
+	static final String api_id = "141721";
+	static final String api_channel = "private-channel";
+	static final String api_event_recieve = "MoveToAgent";
+	static final String api_event_send = "client-event";
+	static final String api_messageKey = "message";
+	static String api_secret = "9c4d166f1cf91fd27dbc";
+	static String api_key = "31c391e3e11a9b0d551a";
+
+	private final Pusher pusher;
+	private final PrivateChannel channel;
+
+	public Boolean ready = false;
+
+	@SuppressWarnings("unused")
+	private Intelligence ki;
+
+	public PusherImpl(Intelligence ki, char[] key) {
+
+		PusherImpl.api_key = new String(key);
+
+		/*------------------------------------*\
+			Authorization
+		\*------------------------------------*/
+		PusherOptions opt = new PusherOptions();
+		opt.setEncrypted(true);
+		Authorizer auth = new Authorizer() {
+			@Override
+			public String authorize(String arg0, String arg1) throws AuthorizationFailureException {
+				return "{\"auth\":\"" + api_key + ":" + authenticate() + "\"}";
+			}
+		};
+		opt.setAuthorizer(auth);
+
+		/*------------------------------------*\
+			Pusher Initialisation & Connect
+		\*------------------------------------*/
+		pusher = new Pusher(api_key, opt);
+		pusher.disconnect();
+		pusher.connect(this);
+
+		/*------------------------------------*\
+			Subscribe to Channel
+		\*------------------------------------*/
+		channel = pusher.subscribePrivate(api_channel, new PrivateChannelEventListener() {
+			@Override
+			public void onAuthenticationFailure(String message, Exception e) {
+				System.out.println(String.format("Authentication failure due to [%s], exception was [%s]", message, e));
+			}
+
+			@Override
+			public void onSubscriptionSucceeded(String arg0) {
+				System.out.println("Succeed.");
+			}
+
+			@Override
+			public void onEvent(String arg0, String arg1, String arg2) {
+				System.out.println(arg0 + arg1 + arg2);
+			}
+		});
+
+		/*------------------------------------*\
+			Watch for Events  (Client & Server)
+		\*------------------------------------*/
+		channel.bind(api_event_send, new PrivateChannelEventListener() {
+			@Override
+			public void onEvent(String channel, String event, String data) {
+				System.out.println("Recieved Event in wrong channel.");
+			}
+
+			@Override
+			public void onSubscriptionSucceeded(String arg0) {
+			}
+
+			@Override
+			public void onAuthenticationFailure(String arg0, Exception arg1) {
+			}
+		});
+		channel.bind(api_event_recieve, new PrivateChannelEventListener() {
+			@Override
+			public void onEvent(String channel, String event, String data) {
+
+				System.out.println("Received event with data: " + data);
+
+				try {
+					JSONObject wrapper = new JSONObject(data);
+					String[] content = wrapper.getString(api_messageKey).split(" # ");
+					for (String i : content) {
+						i.trim();
+					}
+
+					ki.handle(content);
+					if (ki.unserZug()) {
+						System.out.println("Wir sind dran!");
+						int tmp = ki.getZug();
+						send(tmp);
+					}
+					else System.out.println("Wir sind nicht dran!");
+
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+			}
+
+			@Override
+			public void onSubscriptionSucceeded(String arg0) {
+			}
+
+			@Override
+			public void onAuthenticationFailure(String arg0, Exception arg1) {
+			}
+		});
+
+		/*------------------------------------*\
+			Main Job
+		\*------------------------------------*/
+		while (!connectionReady()) {
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e1) {
+				e1.printStackTrace();
+			}
+		}
+	}
+
+	@Override
+	public void send(int move) {
+		/*------------------------------------*\
+			Send to Pusher Server
+		\*------------------------------------*/
+		channel.trigger(api_event_send, "{\"move\": \"" + move + "\"}");
+		System.out.println("Sended event with data: " + move);
+	}
+
+	@Override
+	public void onEvent(String arg0, String arg1, String arg2) {
+		System.out.println(arg0 + arg1 + arg2);
+	}
+
+	@Override
+	public void onSubscriptionSucceeded(String arg0) {
+		System.out.println(arg0);
+	}
+
+	@Override
+	public void onConnectionStateChange(ConnectionStateChange arg0) {
+		System.out.println(arg0.getCurrentState().toString());
+	}
+
+	@Override
+	public void onError(String arg0, String arg1, Exception arg2) {
+		System.out.println(arg0 + arg1 + arg2.toString());
+	}
+
+	@Override
+	public void onAuthenticationFailure(String arg0, Exception arg1) {
+		System.out.println(arg0 + arg1.toString());
+	}
+
+	private String authenticate() {
+		SecretKey sK = new SecretKeySpec(api_secret.getBytes(), "HmacSHA256");
+		Mac mac;
+		StringBuffer sb = new StringBuffer();
+
+		try {
+			mac = Mac.getInstance("HmacSHA256");
+			mac.init(sK);
+
+			byte[] sign = mac.doFinal((pusher.getConnection().getSocketId() + ":" + api_channel).getBytes());
+			for (int i = 0; i < sign.length; ++i) {
+				sb.append(Integer.toHexString((sign[i] >> 4) & 0xf));
+				sb.append(Integer.toHexString(sign[i] & 0xf));
+			}
+		} catch (NoSuchAlgorithmException | InvalidKeyException e) {
+			e.printStackTrace();
+		}
+
+		return sb.toString();
+	}
+
+	@Override
+	public void recieve() {
+
+	}
+
+	public Boolean connectionReady() {
+		return pusher.getConnection().getState().toString() == "CONNECTED";
+	}
+
+}
