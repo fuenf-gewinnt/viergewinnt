@@ -32,6 +32,8 @@ import javax.swing.JRadioButton;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import db.AccessDB;
 import file.FileImpl;
@@ -54,11 +56,18 @@ public class GUIinit {
 	private AccessDB db;
 	private Object[][] data_stat;
 	private JLabel lblSetgegner;
+	private boolean initialStart = true;
+	public static int satz_id;
+	public static int spiel_id;
+	private JLabel lblSetsatz;
+	private JLabel lblSetstandfungi;
+	private JLabel lblSetstand;
 	public static String gegnerName = "";
 	static String spielerwahl;
 	private static JFrame frame;
 	private static Object[][] data;
 	private static JPanel panel1;
+	private final String sep = " (ID ";
 
 	/**
 	 * Erzeuge Applikation.
@@ -72,21 +81,44 @@ public class GUIinit {
 	}
 
 	// CODE START NUR ZU TESTZWECKEN cornemrc
-	public static void satzendePopup(String gegnerName) {
-		// Code für schlechte Zeiten
-		// String name = JOptionPane.showInputDialog(frame, "Wer hat
-		// gewonnen?");
-
+	public static void satzendePopup(String gegnerName, AccessDB db, Intelligence ki) {
 		int auswahl = JOptionPane.showOptionDialog(frame, "Wer hat gewonnen?", "Satzende",
 				JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null,
 				new String[] { "Fungi", gegnerName, "Unentschieden", "Satz wiederholen!" }, "Fungi");
-		System.out.println(auswahl);
+		switch (auswahl) {
+		case 0:
+			db.updateSatzPunkte(satz_id, 2);
+			break;
+		case 1:
+			db.updateSatzPunkte(satz_id, 0);
+			break;
+		case 2:
+			db.updateSatzPunkte(satz_id, 1);
+			break;
+		case 3:
+			db.cleanSatzUndZuege(satz_id);
+			break;
+		default:
+			satzendePopup(gegnerName, db, ki);
+			break;
+		}
+		if (auswahl != 3) {
+			if (ki.startSpieler != 0)
+				db.updateSatzStartspieler(satz_id, ki.startSpieler);
+			else
+				System.out.println("Startspieler konnte nicht ermittelt werden.");
+		} else if (auswahl < 3) {
+			int satzKumuliert = db.getCountSaetze(spiel_id, db.ALLE);
+			db.updateZugSatz(satz_id, satzKumuliert);
+		}
+		db.commit();
 	}
 
-	private void spielendePopup(String gewinner) {
-		// Siegervariable ergänzen!
-		JOptionPane.showMessageDialog(frame, "Gewonnen hat: " + gewinner, "Spielende", 1);
-	}
+	// private void spielendePopup(String gewinner) {
+	// // Siegervariable ergänzen!
+	// JOptionPane.showMessageDialog(frame, "Gewonnen hat: " + gewinner,
+	// "Spielende", 1);
+	// }
 
 	private void savePopup() {
 		// Siegervariable ergänzen!
@@ -106,6 +138,15 @@ public class GUIinit {
 		frame.setIconImage(fungilogo.getImage());
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(null);
+
+		frame.addWindowListener(new java.awt.event.WindowAdapter() {
+			public void windowClosing(java.awt.event.WindowEvent e) {
+				System.out.println("Programm über Fenster-X geschlossen.");
+				db.commit();
+				db.close();
+				System.exit(0);
+			}
+		});
 
 		// Tabs
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
@@ -129,7 +170,7 @@ public class GUIinit {
 		lblSatz.setBounds(1001, 27, 54, 34);
 		panel1.add(lblSatz);
 
-		JLabel lblSetsatz = new JLabel("set_satz");
+		lblSetsatz = new JLabel("");
 		lblSetsatz.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 25));
 		lblSetsatz.setBounds(1135, 27, 88, 34);
 		panel1.add(lblSetsatz);
@@ -140,12 +181,13 @@ public class GUIinit {
 		lbl_chip_red.setBounds(150, 10, 57, 50);
 		panel1.add(lbl_chip_red);
 
-		JLabel lblSpielstand = new JLabel("Fungi                       vs.");
+		JLabel lblSpielstand = new JLabel("Fungi              vs.");
 		lblSpielstand.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 25));
 		lblSpielstand.setBounds(217, 16, 260, 34);
 		panel1.add(lblSpielstand);
 
-		JLabel lblSetstandfungi = new JLabel("set_stand_fungi");
+		// set_stand_fungi
+		lblSetstandfungi = new JLabel("0");
 		lblSetstandfungi.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 25));
 		lblSetstandfungi.setBounds(217, 64, 194, 34);
 		panel1.add(lblSetstandfungi);
@@ -160,7 +202,8 @@ public class GUIinit {
 		lblSetgegner.setBounds(580, 16, 125, 34);
 		panel1.add(lblSetgegner);
 
-		JLabel lblSetstand = new JLabel("set_stand_gegner");
+		// set_stand_gegner
+		lblSetstand = new JLabel("0");
 		lblSetstand.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 25));
 		lblSetstand.setBounds(580, 64, 205, 34);
 		panel1.add(lblSetstand);
@@ -169,7 +212,13 @@ public class GUIinit {
 		// Buttons Start
 		btnStart = new JButton("Start");
 		btnStart.addActionListener(new ActionListener() {
+
 			public void actionPerformed(ActionEvent arg0) {
+				if (!initialStart) {
+					reset();
+					System.out.println("Programm wurde zurückgesetzt.");
+				}
+				initialStart = false;
 				startPlaying();
 				btnStart.setEnabled(false);
 			}
@@ -181,6 +230,8 @@ public class GUIinit {
 		JButton btnBeenden = new JButton("Beenden");
 		btnBeenden.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				db.commit();
+				db.close();
 				System.exit(0); // 0 da keine Fehler aufgetreten sind
 			}
 		});
@@ -305,15 +356,14 @@ public class GUIinit {
 		lblGegnername.setBounds(45, 77, 150, 30);
 		panel2.add(lblGegnername);
 
-		JButton btnPopupTestSpielende = new JButton("Popup Test Spielende");
-		btnPopupTestSpielende.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				spielendePopup("");
-			}
-		});
-		btnPopupTestSpielende.setBounds(1054, 72, 200, 29);
-		panel2.add(btnPopupTestSpielende);
-		// CODE ENDE NUR ZU TESTZWECKEN cornemrc
+		// JButton btnPopupTestSatzende = new JButton("Popup Test Satzende");
+		// btnPopupTestSatzende.addActionListener(new ActionListener() {
+		// public void actionPerformed(ActionEvent e) {
+		// satzendePopup("gegner", db, ki);
+		// }
+		// });
+		// btnPopupTestSatzende.setBounds(854, 72, 200, 29);
+		// panel2.add(btnPopupTestSatzende);
 
 		txtPath = new JTextField();
 		txtPath.setFont(new Font("Segoe UI", Font.PLAIN, 22));
@@ -341,12 +391,13 @@ public class GUIinit {
 		lbl_chip_red_stat.setBounds(150, 10, 57, 50);
 		panel3.add(lbl_chip_red_stat);
 
-		JLabel lblSpielstandStat = new JLabel("Fungi                       vs.");
+		JLabel lblSpielstandStat = new JLabel("Fungi              vs.");
 		lblSpielstandStat.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 25));
 		lblSpielstandStat.setBounds(217, 16, 260, 34);
 		panel3.add(lblSpielstandStat);
 
-		JLabel lblSetstandfungiStat = new JLabel("set_stand_fungi");
+		// set_stand_fungi
+		JLabel lblSetstandfungiStat = new JLabel("");
 		lblSetstandfungiStat.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 25));
 		lblSetstandfungiStat.setBounds(217, 64, 194, 34);
 		panel3.add(lblSetstandfungiStat);
@@ -356,12 +407,14 @@ public class GUIinit {
 		lbl_chip_yellow_stat.setBounds(510, 10, 57, 50);
 		panel3.add(lbl_chip_yellow_stat);
 
-		JLabel lblSetgegnerStat = new JLabel("set_gegner");
+		// set_gegner
+		JLabel lblSetgegnerStat = new JLabel("");
 		lblSetgegnerStat.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 25));
 		lblSetgegnerStat.setBounds(580, 16, 125, 34);
 		panel3.add(lblSetgegnerStat);
 
-		JLabel lblSetstandStat = new JLabel("set_stand_gegner");
+		// set_stand_gegner
+		JLabel lblSetstandStat = new JLabel("");
 		lblSetstandStat.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 25));
 		lblSetstandStat.setBounds(580, 64, 205, 34);
 		panel3.add(lblSetstandStat);
@@ -370,8 +423,8 @@ public class GUIinit {
 		// BEGINN DER STATISTIK SPIELTABELLE
 		data_stat = new Object[][] { { null, null, null, null, null, null, null },
 				{ null, null, null, null, null, null, null }, { null, null, null, null, null, null, null },
-				{ null, null, "x", "o", null, null, null }, { null, null, "x", "o", null, null, null },
-				{ null, null, "x", "o", null, null, null } };
+				{ null, null, null, null, null, null, null }, { null, null, null, null, null, null, null },
+				{ null, null, null, null, null, null, null } };
 
 		// Die Titel der Spalten
 		String[] data_title_stat = new String[] { "0", "1", "2", "3", "4", "5", "6" };
@@ -393,9 +446,7 @@ public class GUIinit {
 
 		// Array für SPIEL Selektionsbox
 		String[] spielArray = new String[3];
-		spielArray[0] = "Spiel 1";
-		spielArray[1] = "Spiel 2";
-		spielArray[2] = "Spiel 3";
+		spielArray[0] = null;
 
 		JComboBox comboBox2 = new JComboBox(spielArray);
 		comboBox2.setFont(new Font("Segoe UI", Font.PLAIN, 22));
@@ -404,9 +455,7 @@ public class GUIinit {
 
 		// Array für SATZ Selektionsbox
 		String[] satzArray = new String[3];
-		satzArray[0] = "Satz 1";
-		satzArray[1] = "Satz 2";
-		satzArray[2] = "Satz 3";
+		satzArray[0] = null;
 
 		JComboBox comboBox3 = new JComboBox(satzArray);
 		comboBox3.setFont(new Font("Segoe UI", Font.PLAIN, 22));
@@ -416,7 +465,20 @@ public class GUIinit {
 		JButton btnShowStats = new JButton("Zeigen!");
 		btnShowStats.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				showStats();
+				// Box 3 verändert -> Statistik zeigen!
+				if ((String) comboBox3.getSelectedItem() != null && !((String) comboBox3.getSelectedItem()).isEmpty()) {
+					// Satz ID
+					String tmp3 = ((String) comboBox3.getSelectedItem());
+					String tmp4 = tmp3.substring(tmp3.indexOf(sep) + (sep).length(), tmp3.length() - 1);
+					int tmpSatzID = Integer.parseInt(tmp4);
+
+					// Statistik
+					updateStats(db.getStatsSpielfeld(tmpSatzID));
+					panel3.repaint();
+
+					// Gegner
+					lblSetgegnerStat.setText(db.getGegner(tmpSatzID));
+				}
 			}
 		});
 		btnShowStats.setBounds(1008, 250, 200, 35);
@@ -424,6 +486,53 @@ public class GUIinit {
 
 		// JTabbedPane wird dem frame hinzugefügt
 		frame.getContentPane().add(tabbedPane);
+
+		tabbedPane.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				if (tabbedPane.getSelectedIndex() == 2) {
+					// Statistik-Tab ausgewählt
+					comboBox1.removeAllItems();
+					String[] tmp = db.getGegner();
+					for (String line : tmp) {
+						comboBox1.addItem(line);
+					}
+				}
+			}
+		});
+
+		comboBox1.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// Box 1 verändert -> Box 2 füllen!
+				JComboBox cb = (JComboBox) e.getSource();
+				if ((String) cb.getSelectedItem() != null && !((String) cb.getSelectedItem()).isEmpty()) {
+					String tmpGegner = (String) cb.getSelectedItem();
+					comboBox2.removeAllItems();
+					String[] tmpSpiele = db.getSpiele(tmpGegner);
+					for (int i = 0; i < tmpSpiele.length; i++) {
+						comboBox2.addItem("Spiel " + (i + 1) + sep + tmpSpiele[i] + ")");
+					}
+				}
+			}
+		});
+
+		comboBox2.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// Box 2 verändert -> Box 3 füllen!
+				JComboBox cb = (JComboBox) e.getSource();
+				if ((String) cb.getSelectedItem() != null && !((String) cb.getSelectedItem()).isEmpty()) {
+					String tmp = ((String) cb.getSelectedItem());
+					String tmp2 = tmp.substring(tmp.indexOf(sep) + (sep).length(), tmp.length() - 1);
+					int tmpSpielID = Integer.parseInt(tmp2);
+					comboBox3.removeAllItems();
+					String[] tmpSaetze = db.getSaetze(tmpSpielID);
+					for (int i = 0; i < tmpSaetze.length; i++) {
+						comboBox3.addItem("Satz " + (i + 1) + sep + tmpSaetze[i] + ")");
+					}
+				}
+			}
+		});
 
 		// Fußzeilen-Info
 		JLabel lblGewinntV = new JLabel("4 Gewinnt v0.3 alpha - Powered by Fungi Software Solutions");
@@ -455,10 +564,6 @@ public class GUIinit {
 		frame.setVisible(true);
 	}
 
-	protected void showStats() {
-
-	}
-
 	public Boolean BtnSelected(String comp) {
 		if (comp.equals("rdbtnPush"))
 			return rdbtnPush.isSelected();
@@ -466,29 +571,58 @@ public class GUIinit {
 			return rdbtnFile.isSelected();
 	}
 
+	private void reset() {
+		ki.reset();
+	}
+
 	private void startPlaying() {
+		/*------------------------------------*\
+			Berechnung Satz/Spiel
+		\*------------------------------------*/
+		// Spiel
+		int tmp = db.pruefeSpieleGewonnen(gegnerName);
+		if (tmp == -2 || tmp == -1) {
+			// Neues Spiel anlegen, da kein Spiel vorhanden ist oder alle haben
+			// Sieger haben
+			spiel_id = db.insertNeuesSpiel(gegnerName);
+			if (spiel_id == -1)
+				System.out.println("Fehler beim Anlegen des Spiels.");
+		} else {
+			// Benutze altes Spiel
+			spiel_id = db.getLetztesSpiel(gegnerName);
+			if (spiel_id == -1)
+				System.out.println("Fehler beim Suchen des letzten Spiels.");
+		}
+		System.out.println("Spiel_ID: " + spiel_id);
+
+		// Satz
+		satz_id = db.insertNeuenSatz(gegnerName, spiel_id);
+		System.out.println("Satz_ID: " + satz_id);
+
+		/*------------------------------------*\
+			Updaten der GUI & Datenbank
+		\*------------------------------------*/
+		lblSetsatz.setText(Integer.toString(db.getCountSaetze(spiel_id, db.ALLE)));
+		lblSetstandfungi.setText(Integer.toString(db.getCountSaetze(spiel_id, db.GEWONNEN)));
+		lblSetstand.setText(Integer.toString(db.getCountSaetze(spiel_id, db.VERLOREN)));
+
 		/*------------------------------------*\
 			Auswahl der Schnittstelle
 		\*------------------------------------*/
 		if (BtnSelected("rdbtnPush")) {
-
 			/*
 			 * PUSHER
 			 */
 			comControl = new PusherImpl(ki, pwdSchlssel.getPassword());
-
 		} else {
-
 			/*
 			 * FILE
 			 */
 			comControl = new FileImpl(ki, txtPath.getText(), spielerwahl);
-
 		}
 	}
 
 	public static void update(Integer[][] spielfeld) {
-
 		/*
 		 * Konvertiere Spielfeld zu Object[][] data!
 		 */
@@ -509,12 +643,37 @@ public class GUIinit {
 			}
 		}
 		panel1.repaint();
+	}
 
+	public void updateStats(Integer[][] spielfeld) {
+		/*
+		 * Konvertiere Spielfeld zu Object[][] data!
+		 */
+		String gegnerwahl;
+		if (spielerwahl.equals("x"))
+			gegnerwahl = "o";
+		else
+			gegnerwahl = "x";
+
+		for (int zeile = 0; zeile < spielfeld.length; zeile++) {
+			for (int spalte = 0; spalte < spielfeld[zeile].length; spalte++) {
+				if (spielfeld[zeile][spalte] != null && spielfeld[zeile][spalte].intValue() == -1) {
+					data_stat[zeile][spalte] = gegnerwahl;
+				} else if (spielfeld[zeile][spalte] != null && spielfeld[zeile][spalte] == 1) {
+					data_stat[zeile][spalte] = spielerwahl;
+				} else
+					data_stat[zeile][spalte] = null;
+			}
+		}
 	}
 
 	public void setGegner(String gegner) {
 		gegnerName = gegner;
 		txtGegnername.setText(gegner);
 		lblSetgegner.setText(gegner);
+	}
+
+	public int getSatz_id() {
+		return satz_id;
 	}
 }

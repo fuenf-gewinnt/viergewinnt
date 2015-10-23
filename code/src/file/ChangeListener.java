@@ -27,11 +27,16 @@ public class ChangeListener extends Thread {
 
 				System.out.println("\r");
 
+				long dif = System.currentTimeMillis();
 				ki.handle(fc.getContent());
 				if (ki.unserZug()) {
 					System.out.println("Wir sind dran!");
 					int tmp = ki.getZug();
 					fc.send(tmp);
+					System.out.print("Dauer des Zugs: ");
+					System.out.print((System.currentTimeMillis() - dif));
+					System.out.print("ms\n");
+					// ki.checkIfBeendet();
 				} else
 					System.out.println("Wir sind nicht dran!");
 

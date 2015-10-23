@@ -27,8 +27,8 @@ public class PusherImpl implements ConnectionEventListener, PrivateChannelEventL
 	static final String api_event_recieve = "MoveToAgent";
 	static final String api_event_send = "client-event";
 	static final String api_messageKey = "message";
-	static String api_secret = "9c4d166f1cf91fd27dbc";
-	static String api_key = "31c391e3e11a9b0d551a";
+	static String api_secret = "ab90f096d4e4c6c542f8";
+	static String api_key = "c25032586100cd3ef9c0";
 
 	private final Pusher pusher;
 	private final PrivateChannel channel;
@@ -39,6 +39,7 @@ public class PusherImpl implements ConnectionEventListener, PrivateChannelEventL
 
 	public PusherImpl(Intelligence ki, char[] key) {
 
+		this.ki = ki;
 		PusherImpl.api_key = new String(key);
 
 		/*------------------------------------*\
@@ -114,13 +115,22 @@ public class PusherImpl implements ConnectionEventListener, PrivateChannelEventL
 							i.trim();
 						}
 
+						long dif = System.currentTimeMillis();
 						ki.handle(content);
-						if (ki.unserZug()) {
-							System.out.println("Wir sind dran!");
-							int tmp = ki.getZug();
-							send(tmp);
-						} else
-							System.out.println("Wir sind nicht dran!");
+						if (ki.spielBeendet()) {
+							System.out.println("Spiel beendet. Pusher wird geschlossen.");
+							pusher.disconnect();
+						} else {
+							if (ki.unserZug()) {
+								System.out.println("Wir sind dran!");
+								int tmp = ki.getZug();
+								send(tmp);
+								System.out.print("Dauer des Zugs: ");
+								System.out.print((System.currentTimeMillis() - dif));
+								System.out.print("ms\n");
+							} else
+								System.out.println("Wir sind nicht dran!");
+						}
 
 					} catch (JSONException e) {
 						e.printStackTrace();
@@ -158,6 +168,8 @@ public class PusherImpl implements ConnectionEventListener, PrivateChannelEventL
 		\*------------------------------------*/
 		channel.trigger(api_event_send, "{\"move\": \"" + move + "\"}");
 		System.out.println("Daten im Channel '" + api_event_send + "' gesendet: " + move);
+		// if (ki.checkIfBeendet())
+		// pusher.disconnect();
 	}
 
 	@Override

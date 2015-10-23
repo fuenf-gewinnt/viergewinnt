@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
 	<classpathentry exported="true" kind="lib" path="jars/pusher.jar"/>
 	<classpathentry exported="true" kind="lib" path="jars/slf4j-simple-1.7.12.jar"/>
 	<classpathentry exported="true" kind="lib" path="jars/hsqldb.jar"/>
 	<classpathentry exported="true" kind="lib" path="jars/sqltool.jar"/>
-	<classpathentry kind="lib" path="jars/org.json-20120521.jar"/>
+	<classpathentry exported="true" kind="lib" path="jars/org.json-20120521.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
