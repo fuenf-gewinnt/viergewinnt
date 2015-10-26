@@ -35,7 +35,7 @@ public class Intelligence {
 
 	public void handle(String[] content) {
 		/*
-		 * Gewinn-Überprüfung fehlt?
+		 * Gewinn-Überprüfung fehlt bei File?
 		 */
 		if (Integer.parseInt(content[2]) >= 0) {
 			/*
@@ -63,6 +63,7 @@ public class Intelligence {
 				zug = startzug();
 			else
 				zug = legLosKI_gibGas();
+			zugReset();
 			fuegeInSpalteEin(zug, 1);
 			GUIinit.update(spielfeld);
 			unserZug = true;
@@ -104,10 +105,10 @@ public class Intelligence {
 		}
 	}
 
-	Integer[] moeglicheZuege = new Integer[globalSpalten];
 	/*
 	 * Verbot = -1 Ja = 1 Egal = 0
 	 */
+	Integer[] moeglicheZuege = new Integer[globalSpalten];
 	int[] ja_array = new int[globalSpalten];
 	int[] unserJa_array = new int[globalSpalten];
 	int[] egal_array = new int[globalSpalten];
@@ -154,6 +155,7 @@ public class Intelligence {
 			int zeilenNummer = getZeilennummer(spalte);
 
 			if (zeilenNummer < 6 && analysiereSpielfeld(zeilenNummer, spalte, 3, 1)) {
+				System.out.println("Prio 1");
 				return spalte;
 			}
 		}
@@ -164,6 +166,7 @@ public class Intelligence {
 			int zeilenNummer = getZeilennummer(spalte);
 
 			if (zeilenNummer < 6 && analysiereSpielfeld(zeilenNummer, spalte, 3, -1)) {
+				System.out.println("Prio 2");
 				return spalte;
 			}
 		}
@@ -223,6 +226,8 @@ public class Intelligence {
 		if (a > 0) {
 			Random random = new Random();
 			int spalte = random.nextInt(a - 1 - 0 + 1) + 0;
+			System.out.println("Prio 3 -> Ja_Array -> Für uns gut");
+			System.out.println("a = " + a + ", spalte = " + spalte + ", uja[sp] = " + unserJa_array[spalte]);
 			return unserJa_array[spalte];
 		}
 
@@ -237,7 +242,9 @@ public class Intelligence {
 		}
 		if (j > 0) {
 			Random random = new Random();
-			int spalte = random.nextInt(j - 1 - 0 + 1) + 0;
+			int spalte = random.nextInt(j);
+			System.out.println("Prio 3 -> Ja_Array -> Gegner blocken");
+			System.out.println("j = " + j + ", spalte = " + spalte + ", ja[sp] = " + ja_array[spalte]);
 			return ja_array[spalte];
 		}
 
@@ -255,6 +262,8 @@ public class Intelligence {
 		if (jj > 0) {
 			Random random = new Random();
 			int spalte = random.nextInt(jj);
+			System.out.println("Prio 3 -> Egal_Array");
+			System.out.println("jj = " + jj + ", spalte = " + spalte + ", egal[sp] = " + egal_array[spalte]);
 			return egal_array[spalte];
 
 		}
@@ -273,6 +282,8 @@ public class Intelligence {
 			spalte = random.nextInt(jjj - 1 - 0 + 1) + 0;
 
 		}
+		System.out.println("Prio 3 -> Verbot_Array");
+		System.out.println("jjj = " + jjj + ", spalte = " + spalte + ", verbot[sp] = " + verbot_array[spalte]);
 		return verbot_array[spalte];
 
 	}
@@ -282,7 +293,6 @@ public class Intelligence {
 		for (int spalte = 0; spalte < 7; spalte++) {
 			if (zeilenNummer < 6 && analysiereSpielfeld(zeilenNummer, spalte, 3, 1)) {
 				zeilenNummer++;
-
 				// wir haben gewonnen
 				return 1;
 			}
@@ -291,12 +301,11 @@ public class Intelligence {
 		for (int spalte = 0; spalte < 7; spalte++) {
 			if (zeilenNummer < 6 && analysiereSpielfeld(zeilenNummer, spalte, 3, -1)) {
 				zeilenNummer++;
-
 				// Gegner hat gewonnen
 				return -1;
 			}
 		}
-		// 0 = kein Gewinn liegt vor
+		// kein Gewinn liegt vor
 		return 0;
 	}
 
@@ -331,7 +340,6 @@ public class Intelligence {
 				anzahl++;
 			}
 		}
-		System.out.println("getZeilennummer(" + spalte + ") = " + anzahl);
 		return anzahl;
 	}
 
@@ -475,6 +483,14 @@ public class Intelligence {
 			return true;
 		} else
 			return false;
+	}
+
+	private void zugReset() {
+		moeglicheZuege = new Integer[globalSpalten];
+		ja_array = new int[globalSpalten];
+		unserJa_array = new int[globalSpalten];
+		egal_array = new int[globalSpalten];
+		verbot_array = new int[globalSpalten];
 	}
 
 }

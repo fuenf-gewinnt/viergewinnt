@@ -12,8 +12,8 @@ public class ConfigFile {
 	File file;
 	FileReader reader;
 	GUIinit gui;
-		
-		public ConfigFile(GUIinit init) {
+
+	public ConfigFile(GUIinit init) {
 		this.gui = init;
 	}
 
