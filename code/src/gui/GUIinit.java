@@ -68,6 +68,7 @@ public class GUIinit {
 	private static Object[][] data;
 	private static JPanel panel1;
 	private final String sep = " (ID ";
+	private final static String unserName = "Fungi";
 
 	/**
 	 * Erzeuge Applikation.
@@ -80,11 +81,10 @@ public class GUIinit {
 		initialize();
 	}
 
-	// CODE START NUR ZU TESTZWECKEN cornemrc
 	public static void satzendePopup(String gegnerName, AccessDB db, Intelligence ki) {
 		int auswahl = JOptionPane.showOptionDialog(frame, "Wer hat gewonnen?", "Satzende",
 				JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null,
-				new String[] { "Fungi", gegnerName, "Unentschieden", "Satz wiederholen!" }, "Fungi");
+				new String[] { unserName, gegnerName, "Unentschieden", "Satz wiederholen!" }, "Fungi");
 		switch (auswahl) {
 		case 0:
 			db.updateSatzPunkte(satz_id, 2);
@@ -102,23 +102,36 @@ public class GUIinit {
 			satzendePopup(gegnerName, db, ki);
 			break;
 		}
-		if (auswahl != 3) {
+		if (auswahl < 3 && auswahl >= 0) {
+			// Startspieler setzen
 			if (ki.startSpieler != 0)
 				db.updateSatzStartspieler(satz_id, ki.startSpieler);
 			else
 				System.out.println("Startspieler konnte nicht ermittelt werden.");
-		} else if (auswahl < 3) {
+
+			// Nummer des Satzes in Zug-Tabelle updaten
 			int satzKumuliert = db.getCountSaetze(spiel_id, db.ALLE);
 			db.updateZugSatz(satz_id, satzKumuliert);
+
+			// Gewinner setzen
+			int tmpPunkte = db.getCountSaetze(spiel_id, db.GEWONNEN);
+			int tmpAnzahlSaetze = db.getCountSaetze(spiel_id, db.ALLE);
+			if ((tmpAnzahlSaetze == 2 && tmpPunkte >= 3) || (tmpAnzahlSaetze > 2 && tmpPunkte > 3)) {
+				// gewonnen!
+				db.updateSpielPunkte(spiel_id, 1);
+				spielendePopup(unserName);
+			} else if ((tmpAnzahlSaetze == 2 && tmpPunkte <= 1) || (tmpAnzahlSaetze > 2 && tmpPunkte < 3)) {
+				// verloren!
+				db.updateSpielPunkte(spiel_id, -1);
+				spielendePopup(gegnerName);
+			}
 		}
 		db.commit();
 	}
 
-	// private void spielendePopup(String gewinner) {
-	// // Siegervariable ergänzen!
-	// JOptionPane.showMessageDialog(frame, "Gewonnen hat: " + gewinner,
-	// "Spielende", 1);
-	// }
+	private static void spielendePopup(String gewinner) {
+		JOptionPane.showMessageDialog(frame, "Gewonnen hat: " + gewinner, "Spielende", 1);
+	}
 
 	private void savePopup() {
 		// Siegervariable ergänzen!

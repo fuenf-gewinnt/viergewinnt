@@ -22,13 +22,16 @@ import com.pusher.client.connection.ConnectionStateChange;
 import ki.Intelligence;
 
 public class PusherImpl implements ConnectionEventListener, PrivateChannelEventListener, PusherController {
-	static final String api_id = "141721";
 	static final String api_channel = "private-channel";
 	static final String api_event_recieve = "MoveToAgent";
 	static final String api_event_send = "client-event";
 	static final String api_messageKey = "message";
-	static String api_secret = "ab90f096d4e4c6c542f8";
-	static String api_key = "c25032586100cd3ef9c0";
+	// static final String api_id = "141721";
+	// static String api_secret = "ab90f096d4e4c6c542f8";
+	// static String api_key = "c25032586100cd3ef9c0";
+	static final String api_id = "141721";
+	static String api_secret = "0a03c7e81a8c0995077d";
+	static String api_key = "76c3b6c84ca5ba0dc8c3";
 
 	private final Pusher pusher;
 	private final PrivateChannel channel;

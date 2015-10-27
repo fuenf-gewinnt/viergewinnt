@@ -85,10 +85,6 @@ public class Intelligence {
 			GUIinit.btnStart.setEnabled(true);
 			unserZug = false;
 			istBeendet = true;
-
-			// Ist Spielende?
-			// GUIinit.spielendePopup();
-			// in db eintragen
 		} else {
 			/*
 			 * Fehler
@@ -98,10 +94,6 @@ public class Intelligence {
 			GUIinit.btnStart.setEnabled(true);
 			unserZug = false;
 			istBeendet = true;
-
-			// Ist Spielende?
-			// GUIinit.spielendePopup();
-			// in db eintragen
 		}
 	}
 
