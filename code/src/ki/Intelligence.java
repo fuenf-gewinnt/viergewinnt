@@ -180,7 +180,7 @@ public class Intelligence {
 			if (zeilenNummer < 6 && analysiereSpielfeld(zeilenNummer, spalte, 2, -1)) {
 				// ja = voerst möglicher und sinnvoller Zug, der aber noch
 				// überprüft werden muss
-				moeglicheZuege[spalte] = 1;
+				moeglicheZuege[spalte] = -2;
 			}
 		}
 
@@ -199,9 +199,9 @@ public class Intelligence {
 
 		// --> Prio3.1: Überprüfung der Züge aus Prio3, ob Gegner durch den Zug
 		// gewinnen kann
-
+		// mit -2
 		for (int spalte = 0; spalte < 7; spalte++) {
-			if (moeglicheZuege[spalte] != null && moeglicheZuege[spalte] == 1) {
+			if (moeglicheZuege[spalte] != null && moeglicheZuege[spalte] == -2) {
 				int zeilenNummer = getZeilennummer(spalte);
 
 				if (zeilenNummer < 6 && analysiereSpielfeld(zeilenNummer, spalte, 3, -1)) {
@@ -210,6 +210,22 @@ public class Intelligence {
 			}
 		}
 
+		// --> Prio3.1: Überprüfung der Züge aus Prio3, ob Gegner durch den Zug
+		// gewinnen kann
+		// mit 2
+		for (int spalte = 0; spalte < 7; spalte++) {
+			if (moeglicheZuege[spalte] != null && moeglicheZuege[spalte] == 2) {
+				int zeilenNummer = getZeilennummer(spalte);
+
+				if (zeilenNummer < 6 && analysiereSpielfeld(zeilenNummer, spalte, 3, -1)) {
+					moeglicheZuege[spalte] = -1;
+				}
+			}
+		}
+
+		for (int i = 0; i < moeglicheZuege.length; i++) {
+			System.out.println("moeglicheZuege[" + i + "]" + moeglicheZuege[i]);
+		}
 		// --> Auswahl des nächsten Spielzugs aus Prio3.
 		// Random aus den "ja-Zügen". Wenn kein ja dann aus den "egal-Zügen".
 		// Zuletzt aus den "verboten-Zuegen"
@@ -234,7 +250,7 @@ public class Intelligence {
 		// schau ob gegner zwei Steine nebeneinander hat -> Frühzeitig blocken
 		int j = 0;
 		for (int i = 0; i < moeglicheZuege.length; i++) {
-			if (moeglicheZuege[i] != null && moeglicheZuege[i] == 1) {
+			if (moeglicheZuege[i] != null && moeglicheZuege[i] == -2 && getZeilennummer(i) < 6) {
 				ja_array[j] = i;
 				j++;
 			}
@@ -252,8 +268,11 @@ public class Intelligence {
 		// egal_array
 		int jj = 0;
 		for (int i = 0; i < moeglicheZuege.length; i++) {
-			if ((moeglicheZuege[i] == null || moeglicheZuege[i] == 0)
-					&& (moeglicheZuege[i] != null && getZeilennummer(moeglicheZuege[i]) < globalZeilen)) {
+			// if ((moeglicheZuege[i] == null || moeglicheZuege[i] == 0 &&
+			// getZeilennummer(i) < 6)
+			// && (moeglicheZuege[i] != null &&
+			// getZeilennummer(moeglicheZuege[i]) < globalZeilen)) {
+			if (moeglicheZuege[i] == null && getZeilennummer(i) < 6) {
 				egal_array[jj] = i;
 				jj++;
 			}
@@ -270,9 +289,9 @@ public class Intelligence {
 
 		// letzte möglichkeit: stein einwerfen, obwohl gegner gewinnen kann
 		int jjj = 0;
-		int spalte = 1;
+		int spalte = 0;
 		for (int i = 0; i < moeglicheZuege.length; i++) {
-			if (moeglicheZuege[i] != null && moeglicheZuege[i] == -1) {
+			if (moeglicheZuege[i] != null && moeglicheZuege[i] == -1 && getZeilennummer(i) < 6) {
 				verbot_array[jjj] = i;
 				jjj++;
 			}

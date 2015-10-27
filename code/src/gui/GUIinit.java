@@ -133,7 +133,7 @@ public class GUIinit {
 		frame = new JFrame();
 		frame.setBounds(100, 100, 1280, 720);
 		frame.setResizable(false);
-		frame.setTitle("4 Gewinnt v0.3 alpha - Powered by Fungi Software Solutions");
+		frame.setTitle("4 Gewinnt v1.0 - Powered by Fungi Software Solutions");
 		ImageIcon fungilogo = new ImageIcon("pictures/fungi_atompilz.png");
 		frame.setIconImage(fungilogo.getImage());
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -535,9 +535,9 @@ public class GUIinit {
 		});
 
 		// Fuﬂzeilen-Info
-		JLabel lblGewinntV = new JLabel("4 Gewinnt v0.3 alpha - Powered by Fungi Software Solutions");
+		JLabel lblGewinntV = new JLabel("4 Gewinnt v1.0 - Powered by Fungi Software Solutions");
 		lblGewinntV.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-		lblGewinntV.setBounds(830, 655, 430, 20);
+		lblGewinntV.setBounds(880, 655, 430, 20);
 		frame.getContentPane().add(lblGewinntV);
 
 		// Einlesen der vorhandenen Konfigurationsdatei
