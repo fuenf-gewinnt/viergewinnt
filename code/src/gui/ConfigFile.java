@@ -29,11 +29,15 @@ public class ConfigFile {
 			writer.write(gui.txtGegnername.getText());
 			// Plattformunabhängiger Zeilenumbruch
 			writer.write(System.getProperty("line.separator"));
-			writer.write(gui.pwdSchlssel.getPassword());
+			writer.write(gui.pwdKey.getPassword());
+			writer.write(System.getProperty("line.separator"));
+			writer.write(gui.pwdSecret.getPassword());
+			writer.write(System.getProperty("line.separator"));
+			writer.write(gui.pwdAppID.getPassword());
 			writer.write(System.getProperty("line.separator"));
 			writer.write(gui.schnittstelle);
 			writer.write(System.getProperty("line.separator"));
-			writer.write(gui.spielerwahl);
+			writer.write(GUIinit.spielerwahl);
 
 			// Schreibe Stream in Datei
 			writer.flush();
@@ -57,7 +61,9 @@ public class ConfigFile {
 			BufferedReader br = new BufferedReader(reader);
 
 			gui.setGegner(br.readLine());
-			gui.pwdSchlssel.setText(br.readLine());
+			gui.pwdKey.setText(br.readLine());
+			gui.pwdSecret.setText(br.readLine());
+			gui.pwdAppID.setText(br.readLine());
 			String zeile3 = br.readLine();
 			if (zeile3.equals("Push")) {
 				gui.schnittstelle = "Push";

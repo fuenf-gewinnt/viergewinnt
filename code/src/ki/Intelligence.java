@@ -215,9 +215,6 @@ public class Intelligence {
 			}
 		}
 
-		for (int i = 0; i < moeglicheZuege.length; i++) {
-			System.out.println("moeglicheZuege[" + i + "]" + moeglicheZuege[i]);
-		}
 		// --> Auswahl des nächsten Spielzugs aus Prio3.
 		// Random aus den "ja-Zügen". Wenn kein ja dann aus den "egal-Zügen".
 		// Zuletzt aus den "verboten-Zuegen"

@@ -9,9 +9,6 @@ import javax.swing.table.DefaultTableCellRenderer;
 
 public class ColorRenderer extends DefaultTableCellRenderer {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 6123477726001189302L;
 	private Object[][] data;
 

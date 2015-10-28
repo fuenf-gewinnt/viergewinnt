@@ -18,6 +18,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.URL;
 
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
@@ -44,7 +45,9 @@ import viergewinnt.CommunicationController;
 public class GUIinit {
 
 	JTextField txtGegnername;
-	JPasswordField pwdSchlssel;
+	JPasswordField pwdKey;
+	JPasswordField pwdSecret;
+	JPasswordField pwdAppID;
 	String schnittstelle;
 	JTextField txtPath;
 	public static JButton btnStart;
@@ -147,7 +150,8 @@ public class GUIinit {
 		frame.setBounds(100, 100, 1280, 720);
 		frame.setResizable(false);
 		frame.setTitle("4 Gewinnt v1.0 - Powered by Fungi Software Solutions");
-		ImageIcon fungilogo = new ImageIcon("pictures/fungi_atompilz.png");
+		URL url1 = GUIinit.class.getResource("/fungi_atompilz.png");
+		ImageIcon fungilogo = new ImageIcon(url1);
 		frame.setIconImage(fungilogo.getImage());
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(null);
@@ -173,7 +177,8 @@ public class GUIinit {
 		panel1.setLayout(null);
 
 		// 4w Silhouette
-		ImageIcon img_silhouette = new ImageIcon("pictures/4w_silhouette.png");
+		URL url2 = GUIinit.class.getResource("/4w_silhouette.png");
+		ImageIcon img_silhouette = new ImageIcon(url2);
 		JLabel lblSilhouette = new JLabel(img_silhouette);
 		lblSilhouette.setBounds(10, 100, 921, 500);
 		panel1.add(lblSilhouette);
@@ -189,7 +194,8 @@ public class GUIinit {
 		panel1.add(lblSetsatz);
 
 		// Ergebnisanzeige Start
-		ImageIcon img_chip_red = new ImageIcon("pictures/red.png");
+		URL url3 = GUIinit.class.getResource("/red.png");
+		ImageIcon img_chip_red = new ImageIcon(url3);
 		JLabel lbl_chip_red = new JLabel(img_chip_red);
 		lbl_chip_red.setBounds(150, 10, 57, 50);
 		panel1.add(lbl_chip_red);
@@ -205,7 +211,8 @@ public class GUIinit {
 		lblSetstandfungi.setBounds(217, 64, 194, 34);
 		panel1.add(lblSetstandfungi);
 
-		ImageIcon img_chip_yellow = new ImageIcon("pictures/yellow.png");
+		URL url4 = GUIinit.class.getResource("/yellow.png");
+		ImageIcon img_chip_yellow = new ImageIcon(url4);
 		JLabel lbl_chip_yellow = new JLabel(img_chip_yellow);
 		lbl_chip_yellow.setBounds(510, 10, 57, 50);
 		panel1.add(lbl_chip_yellow);
@@ -284,14 +291,24 @@ public class GUIinit {
 		// --- Beginn der Konfiguration ---
 		txtGegnername = new JTextField();
 		txtGegnername.setFont(new Font("Segoe UI", Font.PLAIN, 22));
-		txtGegnername.setBounds(224, 72, 200, 35);
+		txtGegnername.setBounds(264, 72, 200, 35);
 		panel2.add(txtGegnername);
 		txtGegnername.setColumns(10);
 
-		pwdSchlssel = new JPasswordField();
-		pwdSchlssel.setFont(new Font("Segoe UI", Font.PLAIN, 22));
-		pwdSchlssel.setBounds(224, 123, 200, 35);
-		panel2.add(pwdSchlssel);
+		pwdKey = new JPasswordField();
+		pwdKey.setFont(new Font("Segoe UI", Font.PLAIN, 22));
+		pwdKey.setBounds(264, 123, 200, 35);
+		panel2.add(pwdKey);
+
+		pwdSecret = new JPasswordField();
+		pwdSecret.setFont(new Font("Segoe UI", Font.PLAIN, 22));
+		pwdSecret.setBounds(484, 123, 200, 35);
+		panel2.add(pwdSecret);
+
+		pwdAppID = new JPasswordField();
+		pwdAppID.setFont(new Font("Segoe UI", Font.PLAIN, 22));
+		pwdAppID.setBounds(704, 123, 80, 35);
+		panel2.add(pwdAppID);
 
 		JLabel lblSchnittstelle = new JLabel("Schnittstelle:");
 		lblSchnittstelle.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 22));
@@ -300,12 +317,12 @@ public class GUIinit {
 
 		rdbtnPush = new JRadioButton("Push");
 		rdbtnPush.setFont(new Font("Segoe UI", Font.PLAIN, 22));
-		rdbtnPush.setBounds(224, 205, 77, 39);
+		rdbtnPush.setBounds(264, 205, 77, 39);
 		panel2.add(rdbtnPush);
 
 		rdbtnFile = new JRadioButton("File");
 		rdbtnFile.setFont(new Font("Segoe UI", Font.PLAIN, 22));
-		rdbtnFile.setBounds(381, 205, 65, 39);
+		rdbtnFile.setBounds(411, 205, 65, 39);
 		panel2.add(rdbtnFile);
 
 		// Schnittstellen-Buttons gruppieren
@@ -320,12 +337,12 @@ public class GUIinit {
 
 		JRadioButton rdbtnSpielerO = new JRadioButton("Spieler O");
 		rdbtnSpielerO.setFont(new Font("Segoe UI", Font.PLAIN, 22));
-		rdbtnSpielerO.setBounds(224, 266, 123, 39);
+		rdbtnSpielerO.setBounds(264, 266, 123, 39);
 		panel2.add(rdbtnSpielerO);
 
 		JRadioButton rdbtnSpielerX = new JRadioButton("Spieler X");
 		rdbtnSpielerX.setFont(new Font("Segoe UI", Font.PLAIN, 22));
-		rdbtnSpielerX.setBounds(381, 266, 119, 39);
+		rdbtnSpielerX.setBounds(411, 266, 119, 39);
 		panel2.add(rdbtnSpielerX);
 
 		// Spieler-Buttons gruppieren
@@ -359,14 +376,14 @@ public class GUIinit {
 		btnSpeichern.setBounds(1128, 529, 120, 30);
 		panel2.add(btnSpeichern);
 
-		JLabel lblSchlssel = new JLabel("Schl\u00FCssel:");
+		JLabel lblSchlssel = new JLabel("Key, Secret, AppID:");
 		lblSchlssel.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 22));
-		lblSchlssel.setBounds(45, 128, 150, 30);
+		lblSchlssel.setBounds(45, 128, 190, 30);
 		panel2.add(lblSchlssel);
 
 		JLabel lblGegnername = new JLabel("Gegnername:");
 		lblGegnername.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 22));
-		lblGegnername.setBounds(45, 77, 150, 30);
+		lblGegnername.setBounds(45, 77, 180, 30);
 		panel2.add(lblGegnername);
 
 		// JButton btnPopupTestSatzende = new JButton("Popup Test Satzende");
@@ -393,13 +410,15 @@ public class GUIinit {
 		panel3.setLayout(null);
 
 		// 4w Silhouette
-		ImageIcon img_silhouetteStat = new ImageIcon("pictures/4w_silhouette.png");
+		URL url5 = GUIinit.class.getResource("/4w_silhouette.png");
+		ImageIcon img_silhouetteStat = new ImageIcon(url5);
 		JLabel lblSilhouetteStat = new JLabel(img_silhouetteStat);
 		lblSilhouetteStat.setBounds(10, 100, 921, 500);
 		panel3.add(lblSilhouetteStat);
 
 		// Ergebnisanzeige Start
-		ImageIcon img_chip_red_stat = new ImageIcon("pictures/red.png");
+		URL url6 = GUIinit.class.getResource("/red.png");
+		ImageIcon img_chip_red_stat = new ImageIcon(url6);
 		JLabel lbl_chip_red_stat = new JLabel(img_chip_red_stat);
 		lbl_chip_red_stat.setBounds(150, 10, 57, 50);
 		panel3.add(lbl_chip_red_stat);
@@ -415,7 +434,8 @@ public class GUIinit {
 		lblSetstandfungiStat.setBounds(217, 64, 194, 34);
 		panel3.add(lblSetstandfungiStat);
 
-		ImageIcon img_chip_yellow_stat = new ImageIcon("pictures/yellow.png");
+		URL url7 = GUIinit.class.getResource("/yellow.png");
+		ImageIcon img_chip_yellow_stat = new ImageIcon(url7);
 		JLabel lbl_chip_yellow_stat = new JLabel(img_chip_yellow_stat);
 		lbl_chip_yellow_stat.setBounds(510, 10, 57, 50);
 		panel3.add(lbl_chip_yellow_stat);
@@ -626,7 +646,7 @@ public class GUIinit {
 			/*
 			 * PUSHER
 			 */
-			comControl = new PusherImpl(ki, pwdSchlssel.getPassword());
+			comControl = new PusherImpl(ki, pwdKey.getPassword(), pwdSecret.getPassword(), pwdAppID.getPassword());
 		} else {
 			/*
 			 * FILE

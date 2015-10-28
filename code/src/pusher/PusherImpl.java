@@ -26,12 +26,9 @@ public class PusherImpl implements ConnectionEventListener, PrivateChannelEventL
 	static final String api_event_recieve = "MoveToAgent";
 	static final String api_event_send = "client-event";
 	static final String api_messageKey = "message";
-	// static final String api_id = "141721";
-	// static String api_secret = "ab90f096d4e4c6c542f8";
-	// static String api_key = "c25032586100cd3ef9c0";
-	static final String api_id = "141721";
-	static String api_secret = "0a03c7e81a8c0995077d";
-	static String api_key = "76c3b6c84ca5ba0dc8c3";
+	static String api_id = "141721";
+	static String api_secret = "ab90f096d4e4c6c542f8";
+	static String api_key = "c25032586100cd3ef9c0";
 
 	private final Pusher pusher;
 	private final PrivateChannel channel;
@@ -40,10 +37,12 @@ public class PusherImpl implements ConnectionEventListener, PrivateChannelEventL
 
 	private Intelligence ki;
 
-	public PusherImpl(Intelligence ki, char[] key) {
+	public PusherImpl(Intelligence ki, char[] key, char[] secret, char[] appId) {
 
 		this.ki = ki;
 		PusherImpl.api_key = new String(key);
+		PusherImpl.api_secret = new String(secret);
+		PusherImpl.api_id = new String(appId);
 
 		/*------------------------------------*\
 			Authorization
