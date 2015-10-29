@@ -19,6 +19,8 @@ import com.pusher.client.channel.PrivateChannelEventListener;
 import com.pusher.client.connection.ConnectionEventListener;
 import com.pusher.client.connection.ConnectionStateChange;
 
+import db.AccessDB;
+import gui.GUIinit;
 import ki.Intelligence;
 
 public class PusherImpl implements ConnectionEventListener, PrivateChannelEventListener, PusherController {
@@ -27,8 +29,8 @@ public class PusherImpl implements ConnectionEventListener, PrivateChannelEventL
 	static final String api_event_send = "client-event";
 	static final String api_messageKey = "message";
 	static String api_id = "141721";
-	static String api_secret = "ab90f096d4e4c6c542f8";
-	static String api_key = "c25032586100cd3ef9c0";
+	static String api_secret = "84a5def6024476b74abd";
+	static String api_key = "f8c067c77292524f786e";
 
 	private final Pusher pusher;
 	private final PrivateChannel channel;
@@ -36,10 +38,13 @@ public class PusherImpl implements ConnectionEventListener, PrivateChannelEventL
 	public Boolean ready = false;
 
 	private Intelligence ki;
+	public boolean connectionError = false;
+	private AccessDB db;
 
-	public PusherImpl(Intelligence ki, char[] key, char[] secret, char[] appId) {
+	public PusherImpl(Intelligence ki, char[] key, char[] secret, char[] appId, AccessDB db) {
 
 		this.ki = ki;
+		this.db = db;
 		PusherImpl.api_key = new String(key);
 		PusherImpl.api_secret = new String(secret);
 		PusherImpl.api_id = new String(appId);
@@ -155,11 +160,24 @@ public class PusherImpl implements ConnectionEventListener, PrivateChannelEventL
 			Main Job while Connection not ready
 		\*------------------------------------*/
 		while (!connectionReady()) {
+			if (connectionError) {
+				break;
+			}
 			try {
 				Thread.sleep(50);
 			} catch (InterruptedException e1) {
 				e1.printStackTrace();
 			}
+		}
+		if (connectionError) {
+			GUIinit.errorPusher();
+			GUIinit.btnStart.setEnabled(true);
+			GUIinit.btnEnde.setVisible(false);
+			System.out.println(">> Setze Datenbank zurück <<");
+			db.cleanSatzUndZuege(GUIinit.satz_id);
+		} else {
+			GUIinit.btnStart.setEnabled(false);
+			GUIinit.btnEnde.setVisible(true);
 		}
 	}
 
@@ -191,7 +209,12 @@ public class PusherImpl implements ConnectionEventListener, PrivateChannelEventL
 
 	@Override
 	public void onError(String arg0, String arg1, Exception arg2) {
-		System.out.println(arg0 + arg1 + arg2.toString());
+		try {
+			connectionError = true;
+			throw new Exception(">> Pusher Connection Error <<");
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
 	}
 
 	@Override

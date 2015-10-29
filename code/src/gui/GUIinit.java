@@ -24,6 +24,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -71,6 +72,7 @@ public class GUIinit {
 	private static Object[][] data;
 	private static JPanel panel1;
 	private final String sep = " (ID ";
+	public static JButton btnEnde;
 	private final static String unserName = "Fungi";
 
 	/**
@@ -240,12 +242,27 @@ public class GUIinit {
 				}
 				initialStart = false;
 				startPlaying();
-				btnStart.setEnabled(false);
 			}
 		});
 		btnStart.setFont(new Font("Segoe UI", Font.PLAIN, 16));
 		btnStart.setBounds(1128, 529, 120, 30);
 		panel1.add(btnStart);
+
+		// Buttons Start
+		btnEnde = new JButton("Abbrechen");
+		btnEnde.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				System.out.println("Satz wurde abgebrochen.");
+				db.cleanSatzUndZuege(GUIinit.satz_id);
+				GUIinit.btnStart.setEnabled(true);
+				GUIinit.btnEnde.setVisible(false);
+				ki.reset();
+			}
+		});
+		btnEnde.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+		btnEnde.setBounds(1128, 483, 120, 30);
+		btnEnde.setVisible(false);
+		panel1.add(btnEnde);
 
 		JButton btnBeenden = new JButton("Beenden");
 		btnBeenden.addActionListener(new ActionListener() {
@@ -398,9 +415,30 @@ public class GUIinit {
 		txtPath = new JTextField();
 		txtPath.setFont(new Font("Segoe UI", Font.PLAIN, 22));
 		txtPath.setText("Bei File bitte Pfad angeben");
-		txtPath.setBounds(534, 206, 600, 35);
+		txtPath.setBounds(534, 206, 400, 35);
 		txtPath.setColumns(10);
 		panel2.add(txtPath);
+
+		JFileChooser chooser = new JFileChooser();
+		chooser.setCurrentDirectory(new java.io.File("."));
+		chooser.setDialogTitle("Wählen Sie den Pfad für die Datei-Kommunikation!");
+		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		chooser.setAcceptAllFileFilterUsed(false);
+
+		JButton btnFileDialog = new JButton("Pfad wählen");
+		btnFileDialog.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				if (chooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
+					System.out.println("Ausgewählter Pfad: " + chooser.getSelectedFile());
+					txtPath.setText(chooser.getSelectedFile().toString());
+				} else {
+					System.out.println("Kein Pfad ausgewählt.");
+				}
+			}
+		});
+		btnFileDialog.setBounds(954, 206, 170, 35);
+		btnFileDialog.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+		panel2.add(btnFileDialog);
 
 		// Tab3: STATISTIK
 		JPanel panel3 = new JPanel();
@@ -497,6 +535,7 @@ public class GUIinit {
 
 		JButton btnShowStats = new JButton("Zeigen!");
 		btnShowStats.addActionListener(new ActionListener() {
+
 			public void actionPerformed(ActionEvent e) {
 				// Box 3 verändert -> Statistik zeigen!
 				if ((String) comboBox3.getSelectedItem() != null && !((String) comboBox3.getSelectedItem()).isEmpty()) {
@@ -646,7 +685,7 @@ public class GUIinit {
 			/*
 			 * PUSHER
 			 */
-			comControl = new PusherImpl(ki, pwdKey.getPassword(), pwdSecret.getPassword(), pwdAppID.getPassword());
+			comControl = new PusherImpl(ki, pwdKey.getPassword(), pwdSecret.getPassword(), pwdAppID.getPassword(), db);
 		} else {
 			/*
 			 * FILE
@@ -708,5 +747,9 @@ public class GUIinit {
 
 	public int getSatz_id() {
 		return satz_id;
+	}
+
+	public static void errorPusher() {
+		JOptionPane.showMessageDialog(frame, "Pusher konnte keine Verbindung herstellen!", "Connection Error", 1);
 	}
 }

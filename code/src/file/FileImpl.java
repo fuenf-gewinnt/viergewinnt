@@ -13,6 +13,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import gui.GUIinit;
 import ki.Intelligence;
 
 public class FileImpl implements FileController {
@@ -40,6 +41,7 @@ public class FileImpl implements FileController {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+		GUIinit.btnStart.setEnabled(false);
 	}
 
 	@Override

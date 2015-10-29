@@ -20,81 +20,8 @@ public class Intelligence {
 	 * >> Gegner: -1 <<>> Wir: 1 <<
 	 */
 
-	public void reset() {
-		zug = null;
-		istBeendet = false;
-		spielfeld = new Integer[globalZeilen][globalSpalten];
-		zugKumuliert = 0;
-		startSpieler = 0;
-		GUIinit.update(spielfeld);
-	}
-
 	public Intelligence(AccessDB db) {
 		this.db = db;
-	}
-
-	public void handle(String[] content) {
-		/*
-		 * Gewinn-Überprüfung fehlt bei File?
-		 */
-		if (Integer.parseInt(content[2]) >= 0) {
-			/*
-			 * Gegnerzug ohne Überprüfung!
-			 */
-			int spalte = Integer.parseInt(content[2]);
-			System.out.println("Gegner schmeisst in: " + spalte);
-			fuegeInSpalteEin(spalte, -1);
-			GUIinit.update(spielfeld);
-
-			if (zugKumuliert == 0) {
-				// Gegner ist Startspieler
-				startSpieler = -1;
-			}
-			zugKumuliert++;
-
-			db.insertNeuenZug(zugKumuliert, GUIinit.satz_id, db.getCountSaetze(GUIinit.spiel_id, db.ALLE), spalte,
-					getZeilennummer(spalte) - 1, -1);
-		}
-		if (content[0].equals("true")) {
-			/*
-			 * Unser Zug!
-			 */
-			if (Integer.parseInt(content[2]) < 0)
-				zug = startzug();
-			else
-				zug = legLosKI_gibGas();
-			zugReset();
-			fuegeInSpalteEin(zug, 1);
-			GUIinit.update(spielfeld);
-			unserZug = true;
-
-			if (zugKumuliert == 0) {
-				// Gegner ist Startspieler
-				startSpieler = 1;
-			}
-			zugKumuliert++;
-
-			db.insertNeuenZug(zugKumuliert, GUIinit.satz_id, db.getCountSaetze(GUIinit.spiel_id, db.ALLE), zug,
-					getZeilennummer(zug) - 1, 1);
-		} else if (!content[3].equals("offen")) {
-			/*
-			 * Gewinner
-			 */
-			System.out.println(content[3] + " hat gewonnen.");
-			GUIinit.satzendePopup(content[3], db, this);
-			GUIinit.btnStart.setEnabled(true);
-			unserZug = false;
-			istBeendet = true;
-		} else {
-			/*
-			 * Fehler
-			 */
-			System.out.println("Freigabe: false");
-			GUIinit.satzendePopup(GUIinit.gegnerName, db, this);
-			GUIinit.btnStart.setEnabled(true);
-			unserZug = false;
-			istBeendet = true;
-		}
 	}
 
 	/*
@@ -499,6 +426,81 @@ public class Intelligence {
 		unserJa_array = new int[globalSpalten];
 		egal_array = new int[globalSpalten];
 		verbot_array = new int[globalSpalten];
+	}
+
+	public void reset() {
+		zug = null;
+		istBeendet = false;
+		spielfeld = new Integer[globalZeilen][globalSpalten];
+		zugKumuliert = 0;
+		startSpieler = 0;
+		GUIinit.update(spielfeld);
+	}
+
+	public void handle(String[] content) {
+		/*
+		 * Gewinn-Überprüfung fehlt bei File?
+		 */
+		if (Integer.parseInt(content[2]) >= 0) {
+			/*
+			 * Gegnerzug ohne Überprüfung!
+			 */
+			int spalte = Integer.parseInt(content[2]);
+			System.out.println("Gegner schmeisst in: " + spalte);
+			fuegeInSpalteEin(spalte, -1);
+			GUIinit.update(spielfeld);
+
+			if (zugKumuliert == 0) {
+				// Gegner ist Startspieler
+				startSpieler = -1;
+			}
+			zugKumuliert++;
+
+			db.insertNeuenZug(zugKumuliert, GUIinit.satz_id, db.getCountSaetze(GUIinit.spiel_id, db.ALLE), spalte,
+					getZeilennummer(spalte) - 1, -1);
+		}
+		if (content[0].equals("true")) {
+			/*
+			 * Unser Zug!
+			 */
+			if (Integer.parseInt(content[2]) < 0)
+				zug = startzug();
+			else
+				zug = legLosKI_gibGas();
+			zugReset();
+			fuegeInSpalteEin(zug, 1);
+			GUIinit.update(spielfeld);
+			unserZug = true;
+
+			if (zugKumuliert == 0) {
+				// Gegner ist Startspieler
+				startSpieler = 1;
+			}
+			zugKumuliert++;
+
+			db.insertNeuenZug(zugKumuliert, GUIinit.satz_id, db.getCountSaetze(GUIinit.spiel_id, db.ALLE), zug,
+					getZeilennummer(zug) - 1, 1);
+		} else if (!content[3].equals("offen")) {
+			/*
+			 * Gewinner
+			 */
+			System.out.println(content[3] + " hat gewonnen.");
+			GUIinit.satzendePopup(GUIinit.gegnerName, db, this);
+			GUIinit.btnStart.setEnabled(true);
+			GUIinit.btnEnde.setVisible(false);
+			unserZug = false;
+			istBeendet = true;
+		} else {
+			/*
+			 * Fehler
+			 */
+			System.out.println("Freigabe: false");
+			GUIinit.satzendePopup(GUIinit.gegnerName, db, this);
+			GUIinit.btnStart.setEnabled(true);
+			GUIinit.btnEnde.setVisible(false);
+			unserZug = false;
+			istBeendet = true;
+		}
 	}
 
 }
