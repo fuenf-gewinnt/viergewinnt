@@ -26,6 +26,7 @@ public class FileImpl implements FileController {
 	private String[] content;
 	private Boolean isReady;
 	public boolean fileFound;
+	private Thread t;
 
 	public FileImpl(Intelligence ki, String pfad, String spielerangabe) {
 		// Übergabe der Daten um Datei(pfad) zu finden
@@ -34,7 +35,7 @@ public class FileImpl implements FileController {
 			pfad = pfad + "\\";
 		agentPfad = pfad + "server2spieler" + spielerangabe + ".xml";
 		serverPfad = pfad + "spieler" + spielerangabe + "2server.txt";
-		Thread t = new ChangeListener(this, ki);
+		t = new ChangeListener(this, ki);
 		t.start();
 		try {
 			Thread.sleep(40);
@@ -42,6 +43,7 @@ public class FileImpl implements FileController {
 			e.printStackTrace();
 		}
 		GUIinit.btnStart.setEnabled(false);
+		GUIinit.btnEnde.setVisible(true);
 	}
 
 	@Override
@@ -123,6 +125,16 @@ public class FileImpl implements FileController {
 			return false;
 		}
 
+	}
+
+	public void stop() {
+		((ChangeListener) t).setInterrupt();
+		t.interrupt();
+		try {
+			t.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
 }

@@ -72,6 +72,10 @@ public class GUIinit {
 	private static Object[][] data;
 	private static JPanel panel1;
 	private final String sep = " (ID ";
+	private JLabel lbl_chip_right_stat;
+	private JLabel lbl_chip_left_stat;
+	private JLabel lbl_chip_left;
+	private JLabel lbl_chip_right;
 	public static JButton btnEnde;
 	private final static String unserName = "Fungi";
 
@@ -198,9 +202,9 @@ public class GUIinit {
 		// Ergebnisanzeige Start
 		URL url3 = GUIinit.class.getResource("/red.png");
 		ImageIcon img_chip_red = new ImageIcon(url3);
-		JLabel lbl_chip_red = new JLabel(img_chip_red);
-		lbl_chip_red.setBounds(150, 10, 57, 50);
-		panel1.add(lbl_chip_red);
+		lbl_chip_left = new JLabel(img_chip_red);
+		lbl_chip_left.setBounds(150, 10, 57, 50);
+		panel1.add(lbl_chip_left);
 
 		JLabel lblSpielstand = new JLabel("Fungi              vs.");
 		lblSpielstand.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 25));
@@ -215,9 +219,9 @@ public class GUIinit {
 
 		URL url4 = GUIinit.class.getResource("/yellow.png");
 		ImageIcon img_chip_yellow = new ImageIcon(url4);
-		JLabel lbl_chip_yellow = new JLabel(img_chip_yellow);
-		lbl_chip_yellow.setBounds(510, 10, 57, 50);
-		panel1.add(lbl_chip_yellow);
+		lbl_chip_right = new JLabel(img_chip_yellow);
+		lbl_chip_right.setBounds(510, 10, 57, 50);
+		panel1.add(lbl_chip_right);
 
 		lblSetgegner = new JLabel();
 		lblSetgegner.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 25));
@@ -256,6 +260,8 @@ public class GUIinit {
 				db.cleanSatzUndZuege(GUIinit.satz_id);
 				GUIinit.btnStart.setEnabled(true);
 				GUIinit.btnEnde.setVisible(false);
+				if (rdbtnFile.isSelected())
+					((FileImpl) comControl).stop();
 				ki.reset();
 			}
 		});
@@ -371,21 +377,22 @@ public class GUIinit {
 		btnSpeichern.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				// Konfigurationsdatei erstellen/aktualisieren
-				if (rdbtnPush.isSelected() == true) {
+				if (rdbtnPush.isSelected()) {
 					schnittstelle = "Push";
 				}
-				if (rdbtnFile.isSelected() == true) {
+				if (rdbtnFile.isSelected()) {
 					schnittstelle = "File_" + txtPath.getText();
 				}
-				if (rdbtnSpielerO.isSelected() == true) {
+				if (rdbtnSpielerO.isSelected()) {
 					spielerwahl = "o";
 				}
-				if (rdbtnSpielerX.isSelected() == true) {
+				if (rdbtnSpielerX.isSelected()) {
 					spielerwahl = "x";
 				}
 				gegnerName = txtGegnername.getText();
 				lblSetgegner.setText(gegnerName);
 				cFW.schreiben();
+				checkIcons();
 				savePopup();
 			}
 		});
@@ -457,9 +464,9 @@ public class GUIinit {
 		// Ergebnisanzeige Start
 		URL url6 = GUIinit.class.getResource("/red.png");
 		ImageIcon img_chip_red_stat = new ImageIcon(url6);
-		JLabel lbl_chip_red_stat = new JLabel(img_chip_red_stat);
-		lbl_chip_red_stat.setBounds(150, 10, 57, 50);
-		panel3.add(lbl_chip_red_stat);
+		lbl_chip_left_stat = new JLabel(img_chip_red_stat);
+		lbl_chip_left_stat.setBounds(150, 10, 57, 50);
+		panel3.add(lbl_chip_left_stat);
 
 		JLabel lblSpielstandStat = new JLabel("Fungi              vs.");
 		lblSpielstandStat.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 25));
@@ -474,9 +481,9 @@ public class GUIinit {
 
 		URL url7 = GUIinit.class.getResource("/yellow.png");
 		ImageIcon img_chip_yellow_stat = new ImageIcon(url7);
-		JLabel lbl_chip_yellow_stat = new JLabel(img_chip_yellow_stat);
-		lbl_chip_yellow_stat.setBounds(510, 10, 57, 50);
-		panel3.add(lbl_chip_yellow_stat);
+		lbl_chip_right_stat = new JLabel(img_chip_yellow_stat);
+		lbl_chip_right_stat.setBounds(510, 10, 57, 50);
+		panel3.add(lbl_chip_right_stat);
 
 		// set_gegner
 		JLabel lblSetgegnerStat = new JLabel("");
@@ -633,7 +640,32 @@ public class GUIinit {
 			System.err.println("Möglicherweise ist die Konfigurationsdatei beschädigt.");
 		}
 
+		checkIcons();
+
 		frame.setVisible(true);
+	}
+
+	protected void checkIcons() {
+		// Icons tauschen wegen Farbe
+		if (spielerwahl.equals("x")) {
+			URL tmpIcon1 = GUIinit.class.getResource("/red.png");
+			ImageIcon tmpImg1 = new ImageIcon(tmpIcon1);
+			lbl_chip_right_stat.setIcon(tmpImg1);
+			lbl_chip_right.setIcon(tmpImg1);
+			URL tmpIcon2 = GUIinit.class.getResource("/yellow.png");
+			ImageIcon tmpImg2 = new ImageIcon(tmpIcon2);
+			lbl_chip_left_stat.setIcon(tmpImg2);
+			lbl_chip_left.setIcon(tmpImg2);
+		} else {
+			URL tmpIcon1 = GUIinit.class.getResource("/red.png");
+			ImageIcon tmpImg1 = new ImageIcon(tmpIcon1);
+			lbl_chip_left_stat.setIcon(tmpImg1);
+			lbl_chip_left.setIcon(tmpImg1);
+			URL tmpIcon2 = GUIinit.class.getResource("/yellow.png");
+			ImageIcon tmpImg2 = new ImageIcon(tmpIcon2);
+			lbl_chip_right_stat.setIcon(tmpImg2);
+			lbl_chip_right.setIcon(tmpImg2);
+		}
 	}
 
 	public Boolean BtnSelected(String comp) {

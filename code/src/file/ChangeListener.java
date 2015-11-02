@@ -7,6 +7,7 @@ public class ChangeListener extends Thread {
 	private FileImpl fc;
 	private Intelligence ki;
 	private final int timeOut = 300;
+	private boolean interrupt = false;
 
 	public ChangeListener(FileImpl fc, Intelligence ki) {
 		this.fc = fc;
@@ -16,7 +17,7 @@ public class ChangeListener extends Thread {
 	@Override
 	public void run() {
 		// So lange spiel nicht beendet:
-		while (!ki.spielBeendet()) {
+		while (!ki.spielBeendet() && !interrupt) {
 			/*
 			 * Spielsteuerung
 			 */
@@ -48,6 +49,11 @@ public class ChangeListener extends Thread {
 			while (System.currentTimeMillis() < l) {
 			}
 		}
+	}
+
+	public void setInterrupt() {
+		interrupt = true;
+		System.out.println("ChangeListener beendet.");
 	}
 
 }
