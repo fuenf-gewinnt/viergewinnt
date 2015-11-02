@@ -16,6 +16,7 @@ public class ViergewinntMain {
 		/*------------------------------------*\
 			Oberfläche
 		\*------------------------------------*/
+		@SuppressWarnings("unused")
 		GUIinit gui = new GUIinit(ki, db);
 	}
 }

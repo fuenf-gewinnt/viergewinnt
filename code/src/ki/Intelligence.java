@@ -20,18 +20,19 @@ public class Intelligence {
 	 * >> Gegner: -1 <<>> Wir: 1 <<
 	 */
 
-	public Intelligence(AccessDB db) {
-		this.db = db;
-	}
-
 	/*
 	 * Verbot = -1 Ja = 1 Egal = 0
 	 */
 	Integer[] moeglicheZuege = new Integer[globalSpalten];
+
 	int[] ja_array = new int[globalSpalten];
 	int[] unserJa_array = new int[globalSpalten];
 	int[] egal_array = new int[globalSpalten];
 	int[] verbot_array = new int[globalSpalten];
+
+	public Intelligence(AccessDB db) {
+		this.db = db;
+	}
 
 	/*
 	 * Allgemeine Vorgehensweise der KI: Wir setzen fiktiv einen Stein in jede
@@ -57,12 +58,105 @@ public class Intelligence {
 	 * die möglichkeit zu gewinnen
 	 */
 
-	// falls wir anfangen-> mach das; ansonsten mach legLosKI_gibGas()
-	public int startzug() {
-		// random.nextInt(max - min + 1) + min;
-		Random random = new Random();
-		int i = random.nextInt(3) + 2;
-		return i;
+	public boolean checkIfBeendet() {
+		if (hatJemandGewonnen() != 0) {
+			System.out.println("Spiel zuende.");
+			istBeendet = true;
+			return true;
+		} else
+			return false;
+	}
+
+	public Integer getZug() {
+		// Liefere Controller unseren neuen Zug
+		return zug;
+	}
+
+	public void handle(String[] content) {
+		/*
+		 * Gewinn-Überprüfung fehlt bei File?
+		 */
+		if (Integer.parseInt(content[2]) >= 0) {
+			/*
+			 * Gegnerzug ohne Überprüfung!
+			 */
+			int spalte = Integer.parseInt(content[2]);
+			System.out.println("Gegner schmeisst in: " + spalte);
+			fuegeInSpalteEin(spalte, -1);
+			GUIinit.update(spielfeld);
+
+			if (zugKumuliert == 0) {
+				// Gegner ist Startspieler
+				startSpieler = -1;
+			}
+			zugKumuliert++;
+
+			db.insertNeuenZug(zugKumuliert, GUIinit.satz_id, db.getCountSaetze(GUIinit.spiel_id, db.ALLE), spalte,
+					getZeilennummer(spalte) - 1, -1);
+		}
+		if (content[0].equals("true")) {
+			/*
+			 * Unser Zug!
+			 */
+			if (Integer.parseInt(content[2]) < 0)
+				zug = startzug();
+			else
+				zug = legLosKI_gibGas();
+			zugReset();
+			fuegeInSpalteEin(zug, 1);
+			GUIinit.update(spielfeld);
+			unserZug = true;
+
+			if (zugKumuliert == 0) {
+				// Gegner ist Startspieler
+				startSpieler = 1;
+			}
+			zugKumuliert++;
+
+			db.insertNeuenZug(zugKumuliert, GUIinit.satz_id, db.getCountSaetze(GUIinit.spiel_id, db.ALLE), zug,
+					getZeilennummer(zug) - 1, 1);
+		} else if (!content[3].equals("offen")) {
+			/*
+			 * Gewinner
+			 */
+			System.out.println(content[3] + " hat gewonnen.");
+			GUIinit.satzendePopup(GUIinit.gegnerName, db, this);
+			GUIinit.btnStart.setEnabled(true);
+			GUIinit.btnEnde.setVisible(false);
+			unserZug = false;
+			istBeendet = true;
+		} else {
+			/*
+			 * Fehler
+			 */
+			System.out.println("Freigabe: false");
+			GUIinit.satzendePopup(GUIinit.gegnerName, db, this);
+			GUIinit.btnStart.setEnabled(true);
+			GUIinit.btnEnde.setVisible(false);
+			unserZug = false;
+			istBeendet = true;
+		}
+	}
+
+	public int hatJemandGewonnen() {
+		int zeilenNummer = 0;
+		for (int spalte = 0; spalte < 7; spalte++) {
+			if (zeilenNummer < 6 && analysiereSpielfeld(zeilenNummer, spalte, 3, 1)) {
+				zeilenNummer++;
+				// wir haben gewonnen
+				return 1;
+			}
+		}
+		zeilenNummer = 0;
+		for (int spalte = 0; spalte < 7; spalte++) {
+			if (zeilenNummer < 6 && analysiereSpielfeld(zeilenNummer, spalte, 3, -1)) {
+				zeilenNummer++;
+				// Gegner hat gewonnen
+				return -1;
+			}
+		}
+		// kein Gewinn liegt vor
+		return 0;
 	}
 
 	// Spieler 1 = wir
@@ -223,25 +317,29 @@ public class Intelligence {
 
 	}
 
-	public int hatJemandGewonnen() {
-		int zeilenNummer = 0;
-		for (int spalte = 0; spalte < 7; spalte++) {
-			if (zeilenNummer < 6 && analysiereSpielfeld(zeilenNummer, spalte, 3, 1)) {
-				zeilenNummer++;
-				// wir haben gewonnen
-				return 1;
-			}
-		}
-		zeilenNummer = 0;
-		for (int spalte = 0; spalte < 7; spalte++) {
-			if (zeilenNummer < 6 && analysiereSpielfeld(zeilenNummer, spalte, 3, -1)) {
-				zeilenNummer++;
-				// Gegner hat gewonnen
-				return -1;
-			}
-		}
-		// kein Gewinn liegt vor
-		return 0;
+	public void reset() {
+		zug = null;
+		istBeendet = false;
+		spielfeld = new Integer[globalZeilen][globalSpalten];
+		zugKumuliert = 0;
+		startSpieler = 0;
+		GUIinit.update(spielfeld);
+	}
+
+	public boolean spielBeendet() {
+		return istBeendet;
+	}
+
+	// falls wir anfangen-> mach das; ansonsten mach legLosKI_gibGas()
+	public int startzug() {
+		// random.nextInt(max - min + 1) + min;
+		Random random = new Random();
+		int i = random.nextInt(3) + 2;
+		return i;
+	}
+
+	public boolean unserZug() {
+		return unserZug;
 	}
 
 	private void fuegeInSpalteEin(int spalte, int spieler) {
@@ -253,70 +351,33 @@ public class Intelligence {
 		}
 	}
 
-	public Integer getZug() {
-		// Liefere Controller unseren neuen Zug
-		return zug;
-	}
-
-	public boolean unserZug() {
-		return unserZug;
-	}
-
-	public boolean spielBeendet() {
-		return istBeendet;
-	}
-
-	// Rückgabe ist die Anzahl der Steine in der entsprechenden Spalte
-	protected int getZeilennummer(int spalte) {
-		int anzahl = 0;
-		for (int i = 0; i < 6; i++) {
-			if (!(spielfeld[globalZeilen - 1 - (i)][spalte] == null
-					|| spielfeld[globalZeilen - 1 - (i)][spalte] == 0)) {
-				anzahl++;
-			}
-		}
-		return anzahl;
-	}
-
-	// Überprüfung 1: Waagrechte Siegmöglichkeit?
-	private boolean pruefeWaagrecht(int zeile, int spalte, int anzahl, int spieler) {
-		for (int r = 0; r <= anzahl; r++) {
-			int gleicheSteine = 0;
-
-			for (int l = 0; l <= anzahl; l++) {
-				if (istDieSpalteNochImSpielfeld(spalte, l, r, 0)
-						&& spielfeld[globalZeilen - 1 - (zeile)][spalte + l - r] != null
-						&& spielfeld[globalZeilen - 1 - (zeile)][spalte + l - r] == spieler) {
-					gleicheSteine++;
-				}
-			}
-
-			if (gleicheSteine == anzahl) {
+	// Boolean-Methode um zu übrprüfen, ob die Spalte noch im SPielfeld ist
+	private boolean istDieSpalteNochImSpielfeld(int spalte, int links, int rechts, int i) {
+		if (i == 1) {
+			/*
+			 * Sonderfall (diagonal rechts unten)
+			 */
+			if ((spalte - links + rechts) >= 0 && (spalte - links + rechts) < 7)
 				return true;
-			}
+
+		} else {
+			/*
+			 * Standard
+			 */
+			if ((spalte + links - rechts) >= 0 && (spalte + links - rechts) < 7)
+				return true;
+
 		}
 		return false;
-
 	}
 
-	// Überprüfung 2: Senkrechte Siegmöglichkeit?
-	private boolean pruefeSenkrecht(int zeile, int spalte, int anzahl, int spieler) {
-		for (int r = 0; r <= anzahl; r++) {
-			int gleicheSteine = 0;
-
-			for (int l = 0; l <= anzahl; l++) {
-				if (istDieZeileNochImSpielfeld(zeile, l, r)
-						&& spielfeld[globalZeilen - 1 - (zeile + l - r)][spalte] != null
-						&& spielfeld[globalZeilen - 1 - (zeile + l - r)][spalte] == spieler) {
-					gleicheSteine++;
-				}
-			}
-			if (gleicheSteine == anzahl) {
-				return true;
-			}
+	// Boolean-Methode um zu übrprüfen, ob die Zeile noch im Spielfeld ist
+	private boolean istDieZeileNochImSpielfeld(int zeile, int links, int rechts) {
+		if ((zeile + links - rechts) >= 0 && (zeile + links - rechts) < 6) {
+			return true;
+		} else {
+			return false;
 		}
-		return false;
-
 	}
 
 	// Überprüfung 3: Diagonale Siegmöglichkeit? (Links unten nach rechts oben)
@@ -360,33 +421,53 @@ public class Intelligence {
 		return false;
 	}
 
-	// Boolean-Methode um zu übrprüfen, ob die Spalte noch im SPielfeld ist
-	private boolean istDieSpalteNochImSpielfeld(int spalte, int links, int rechts, int i) {
-		if (i == 1) {
-			/*
-			 * Sonderfall (diagonal rechts unten)
-			 */
-			if ((spalte - links + rechts) >= 0 && (spalte - links + rechts) < 7)
-				return true;
+	// Überprüfung 2: Senkrechte Siegmöglichkeit?
+	private boolean pruefeSenkrecht(int zeile, int spalte, int anzahl, int spieler) {
+		for (int r = 0; r <= anzahl; r++) {
+			int gleicheSteine = 0;
 
-		} else {
-			/*
-			 * Standard
-			 */
-			if ((spalte + links - rechts) >= 0 && (spalte + links - rechts) < 7)
+			for (int l = 0; l <= anzahl; l++) {
+				if (istDieZeileNochImSpielfeld(zeile, l, r)
+						&& spielfeld[globalZeilen - 1 - (zeile + l - r)][spalte] != null
+						&& spielfeld[globalZeilen - 1 - (zeile + l - r)][spalte] == spieler) {
+					gleicheSteine++;
+				}
+			}
+			if (gleicheSteine == anzahl) {
 				return true;
-
+			}
 		}
 		return false;
+
 	}
 
-	// Boolean-Methode um zu übrprüfen, ob die Zeile noch im Spielfeld ist
-	private boolean istDieZeileNochImSpielfeld(int zeile, int links, int rechts) {
-		if ((zeile + links - rechts) >= 0 && (zeile + links - rechts) < 6) {
-			return true;
-		} else {
-			return false;
+	// Überprüfung 1: Waagrechte Siegmöglichkeit?
+	private boolean pruefeWaagrecht(int zeile, int spalte, int anzahl, int spieler) {
+		for (int r = 0; r <= anzahl; r++) {
+			int gleicheSteine = 0;
+
+			for (int l = 0; l <= anzahl; l++) {
+				if (istDieSpalteNochImSpielfeld(spalte, l, r, 0)
+						&& spielfeld[globalZeilen - 1 - (zeile)][spalte + l - r] != null
+						&& spielfeld[globalZeilen - 1 - (zeile)][spalte + l - r] == spieler) {
+					gleicheSteine++;
+				}
+			}
+
+			if (gleicheSteine == anzahl) {
+				return true;
+			}
 		}
+		return false;
+
+	}
+
+	private void zugReset() {
+		moeglicheZuege = new Integer[globalSpalten];
+		ja_array = new int[globalSpalten];
+		unserJa_array = new int[globalSpalten];
+		egal_array = new int[globalSpalten];
+		verbot_array = new int[globalSpalten];
 	}
 
 	/*
@@ -411,96 +492,16 @@ public class Intelligence {
 
 	}
 
-	public boolean checkIfBeendet() {
-		if (hatJemandGewonnen() != 0) {
-			System.out.println("Spiel zuende.");
-			istBeendet = true;
-			return true;
-		} else
-			return false;
-	}
-
-	private void zugReset() {
-		moeglicheZuege = new Integer[globalSpalten];
-		ja_array = new int[globalSpalten];
-		unserJa_array = new int[globalSpalten];
-		egal_array = new int[globalSpalten];
-		verbot_array = new int[globalSpalten];
-	}
-
-	public void reset() {
-		zug = null;
-		istBeendet = false;
-		spielfeld = new Integer[globalZeilen][globalSpalten];
-		zugKumuliert = 0;
-		startSpieler = 0;
-		GUIinit.update(spielfeld);
-	}
-
-	public void handle(String[] content) {
-		/*
-		 * Gewinn-Überprüfung fehlt bei File?
-		 */
-		if (Integer.parseInt(content[2]) >= 0) {
-			/*
-			 * Gegnerzug ohne Überprüfung!
-			 */
-			int spalte = Integer.parseInt(content[2]);
-			System.out.println("Gegner schmeisst in: " + spalte);
-			fuegeInSpalteEin(spalte, -1);
-			GUIinit.update(spielfeld);
-
-			if (zugKumuliert == 0) {
-				// Gegner ist Startspieler
-				startSpieler = -1;
+	// Rückgabe ist die Anzahl der Steine in der entsprechenden Spalte
+	protected int getZeilennummer(int spalte) {
+		int anzahl = 0;
+		for (int i = 0; i < 6; i++) {
+			if (!(spielfeld[globalZeilen - 1 - (i)][spalte] == null
+					|| spielfeld[globalZeilen - 1 - (i)][spalte] == 0)) {
+				anzahl++;
 			}
-			zugKumuliert++;
-
-			db.insertNeuenZug(zugKumuliert, GUIinit.satz_id, db.getCountSaetze(GUIinit.spiel_id, db.ALLE), spalte,
-					getZeilennummer(spalte) - 1, -1);
 		}
-		if (content[0].equals("true")) {
-			/*
-			 * Unser Zug!
-			 */
-			if (Integer.parseInt(content[2]) < 0)
-				zug = startzug();
-			else
-				zug = legLosKI_gibGas();
-			zugReset();
-			fuegeInSpalteEin(zug, 1);
-			GUIinit.update(spielfeld);
-			unserZug = true;
-
-			if (zugKumuliert == 0) {
-				// Gegner ist Startspieler
-				startSpieler = 1;
-			}
-			zugKumuliert++;
-
-			db.insertNeuenZug(zugKumuliert, GUIinit.satz_id, db.getCountSaetze(GUIinit.spiel_id, db.ALLE), zug,
-					getZeilennummer(zug) - 1, 1);
-		} else if (!content[3].equals("offen")) {
-			/*
-			 * Gewinner
-			 */
-			System.out.println(content[3] + " hat gewonnen.");
-			GUIinit.satzendePopup(GUIinit.gegnerName, db, this);
-			GUIinit.btnStart.setEnabled(true);
-			GUIinit.btnEnde.setVisible(false);
-			unserZug = false;
-			istBeendet = true;
-		} else {
-			/*
-			 * Fehler
-			 */
-			System.out.println("Freigabe: false");
-			GUIinit.satzendePopup(GUIinit.gegnerName, db, this);
-			GUIinit.btnStart.setEnabled(true);
-			GUIinit.btnEnde.setVisible(false);
-			unserZug = false;
-			istBeendet = true;
-		}
+		return anzahl;
 	}
 
 }

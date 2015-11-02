@@ -37,14 +37,10 @@ public class PusherImpl implements ConnectionEventListener, PrivateChannelEventL
 
 	public Boolean ready = false;
 
-	private Intelligence ki;
 	public boolean connectionError = false;
-	private AccessDB db;
 
 	public PusherImpl(Intelligence ki, char[] key, char[] secret, char[] appId, AccessDB db) {
 
-		this.ki = ki;
-		this.db = db;
 		PusherImpl.api_key = new String(key);
 		PusherImpl.api_secret = new String(secret);
 		PusherImpl.api_id = new String(appId);
@@ -80,13 +76,13 @@ public class PusherImpl implements ConnectionEventListener, PrivateChannelEventL
 			}
 
 			@Override
-			public void onSubscriptionSucceeded(String arg0) {
-				System.out.println("Subscription von Channel '" + api_channel + "' erfolgreich.");
+			public void onEvent(String arg0, String arg1, String arg2) {
+				System.out.println(arg0 + arg1 + arg2);
 			}
 
 			@Override
-			public void onEvent(String arg0, String arg1, String arg2) {
-				System.out.println(arg0 + arg1 + arg2);
+			public void onSubscriptionSucceeded(String arg0) {
+				System.out.println("Subscription von Channel '" + api_channel + "' erfolgreich.");
 			}
 		});
 
@@ -95,6 +91,10 @@ public class PusherImpl implements ConnectionEventListener, PrivateChannelEventL
 		\*------------------------------------*/
 		channel.bind(api_event_send, new PrivateChannelEventListener() {
 			@Override
+			public void onAuthenticationFailure(String arg0, Exception arg1) {
+			}
+
+			@Override
 			public void onEvent(String channel, String event, String data) {
 				System.out.println("Daten im falschen Event (" + event + ") empfangen: " + data);
 			}
@@ -102,12 +102,13 @@ public class PusherImpl implements ConnectionEventListener, PrivateChannelEventL
 			@Override
 			public void onSubscriptionSucceeded(String arg0) {
 			}
-
-			@Override
-			public void onAuthenticationFailure(String arg0, Exception arg1) {
-			}
 		});
 		channel.bind(api_event_recieve, new PrivateChannelEventListener() {
+			@Override
+			public void onAuthenticationFailure(String arg0, Exception arg1) {
+				arg1.printStackTrace();
+			}
+
 			@Override
 			public void onEvent(String channel, String event, String data) {
 
@@ -149,11 +150,6 @@ public class PusherImpl implements ConnectionEventListener, PrivateChannelEventL
 			@Override
 			public void onSubscriptionSucceeded(String arg0) {
 			}
-
-			@Override
-			public void onAuthenticationFailure(String arg0, Exception arg1) {
-				arg1.printStackTrace();
-			}
 		});
 
 		/*------------------------------------*\
@@ -181,25 +177,13 @@ public class PusherImpl implements ConnectionEventListener, PrivateChannelEventL
 		}
 	}
 
-	@Override
-	public void send(int move) {
-		/*------------------------------------*\
-			Send to Pusher Server
-		\*------------------------------------*/
-		channel.trigger(api_event_send, "{\"move\": \"" + move + "\"}");
-		System.out.println("Daten im Channel '" + api_event_send + "' gesendet: " + move);
-		// if (ki.checkIfBeendet())
-		// pusher.disconnect();
+	public Boolean connectionReady() {
+		return pusher.getConnection().getState().toString() == "CONNECTED";
 	}
 
 	@Override
-	public void onEvent(String arg0, String arg1, String arg2) {
-		System.out.println(arg0 + arg1 + arg2);
-	}
-
-	@Override
-	public void onSubscriptionSucceeded(String arg0) {
-		System.out.println(arg0);
+	public void onAuthenticationFailure(String arg0, Exception arg1) {
+		System.out.println(arg0 + arg1.toString());
 	}
 
 	@Override
@@ -218,8 +202,29 @@ public class PusherImpl implements ConnectionEventListener, PrivateChannelEventL
 	}
 
 	@Override
-	public void onAuthenticationFailure(String arg0, Exception arg1) {
-		System.out.println(arg0 + arg1.toString());
+	public void onEvent(String arg0, String arg1, String arg2) {
+		System.out.println(arg0 + arg1 + arg2);
+	}
+
+	@Override
+	public void onSubscriptionSucceeded(String arg0) {
+		System.out.println(arg0);
+	}
+
+	@Override
+	public void recieve() {
+
+	}
+
+	@Override
+	public void send(int move) {
+		/*------------------------------------*\
+			Send to Pusher Server
+		\*------------------------------------*/
+		channel.trigger(api_event_send, "{\"move\": \"" + move + "\"}");
+		System.out.println("Daten im Channel '" + api_event_send + "' gesendet: " + move);
+		// if (ki.checkIfBeendet())
+		// pusher.disconnect();
 	}
 
 	private String authenticate() {
@@ -241,15 +246,6 @@ public class PusherImpl implements ConnectionEventListener, PrivateChannelEventL
 		}
 
 		return sb.toString();
-	}
-
-	@Override
-	public void recieve() {
-
-	}
-
-	public Boolean connectionReady() {
-		return pusher.getConnection().getState().toString() == "CONNECTED";
 	}
 
 }

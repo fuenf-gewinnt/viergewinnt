@@ -24,7 +24,6 @@ public class FileImpl implements FileController {
 	public String serverPfad;
 	public String spielerangabe;
 	private String[] content;
-	private Boolean isReady;
 	public boolean fileFound;
 	private Thread t;
 
@@ -46,24 +45,23 @@ public class FileImpl implements FileController {
 		GUIinit.btnEnde.setVisible(true);
 	}
 
-	@Override
-	public void send(int z) {
+	public String[] getContent() {
+		return content;
+	}
+
+	public boolean isNew() {
 		try {
-			File agentFile = new File(serverPfad);
-			agentFile.createNewFile();
-			// System.out.println("Agentfile erfolgreich angelegt");
+			fileReader = new FileReader(agentPfad);
+			recieve();
+			fileReader.close();
+			delete();
+			return true;
 
-			// FileWriter Object erstellen:
-			agentWriter = new FileWriter(agentFile);
-			// System.out.println("FileWriter erfolgreich angelegt");
-
-			agentWriter.write(Integer.toString(z));
-			agentWriter.flush();
-			agentWriter.close();
-			System.out.println("Erfolgreiche Eingabe in File");
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (IOException e) {
+			System.out.print(".");
+			return false;
 		}
+
 	}
 
 	@Override
@@ -98,33 +96,24 @@ public class FileImpl implements FileController {
 
 	}
 
-	private void delete() {
+	@Override
+	public void send(int z) {
 		try {
-			File file = new File(agentPfad);
-			file.delete();
+			File agentFile = new File(serverPfad);
+			agentFile.createNewFile();
+			// System.out.println("Agentfile erfolgreich angelegt");
+
+			// FileWriter Object erstellen:
+			agentWriter = new FileWriter(agentFile);
+			// System.out.println("FileWriter erfolgreich angelegt");
+
+			agentWriter.write(Integer.toString(z));
+			agentWriter.flush();
+			agentWriter.close();
+			System.out.println("Erfolgreiche Eingabe in File");
 		} catch (Exception e) {
-			System.out.println("bad to delete");
+			e.printStackTrace();
 		}
-
-	}
-
-	public String[] getContent() {
-		return content;
-	}
-
-	public boolean isNew() {
-		try {
-			fileReader = new FileReader(agentPfad);
-			recieve();
-			fileReader.close();
-			delete();
-			return true;
-
-		} catch (IOException e) {
-			System.out.print(".");
-			return false;
-		}
-
 	}
 
 	@Override
@@ -136,6 +125,16 @@ public class FileImpl implements FileController {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+	}
+
+	private void delete() {
+		try {
+			File file = new File(agentPfad);
+			file.delete();
+		} catch (Exception e) {
+			System.out.println("bad to delete");
+		}
+
 	}
 
 }

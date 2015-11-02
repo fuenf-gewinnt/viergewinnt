@@ -45,49 +45,19 @@ import viergewinnt.CommunicationController;
 
 public class GUIinit {
 
-	JTextField txtGegnername;
-	JPasswordField pwdKey;
-	JPasswordField pwdSecret;
-	JPasswordField pwdAppID;
-	String schnittstelle;
-	JTextField txtPath;
 	public static JButton btnStart;
-	private JTable game;
-	private CommunicationController comControl;
-	private Intelligence ki;
-	private JRadioButton rdbtnPush;
-	private JRadioButton rdbtnFile;
-	private AccessDB db;
-	private Object[][] data_stat;
-	private JLabel lblSetgegner;
-	private boolean initialStart = true;
 	public static int satz_id;
 	public static int spiel_id;
-	private JLabel lblSetsatz;
-	private JLabel lblSetstandfungi;
-	private JLabel lblSetstand;
 	public static String gegnerName = "";
-	static String spielerwahl;
+	static String spielerwahl = "";
 	private static JFrame frame;
 	private static Object[][] data;
 	private static JPanel panel1;
-	private final String sep = " (ID ";
-	private JLabel lbl_chip_right_stat;
-	private JLabel lbl_chip_left_stat;
-	private JLabel lbl_chip_left;
-	private JLabel lbl_chip_right;
 	public static JButton btnEnde;
 	private final static String unserName = "Fungi";
 
-	/**
-	 * Erzeuge Applikation.
-	 * 
-	 * @param db
-	 */
-	public GUIinit(Intelligence ki, AccessDB db) {
-		this.ki = ki;
-		this.db = db;
-		initialize();
+	public static void errorPusher() {
+		JOptionPane.showMessageDialog(frame, "Pusher konnte keine Verbindung herstellen!", "Connection Error", 1);
 	}
 
 	public static void satzendePopup(String gegnerName, AccessDB db, Intelligence ki) {
@@ -138,19 +108,115 @@ public class GUIinit {
 		db.commit();
 	}
 
+	public static void update(Integer[][] spielfeld) {
+		/*
+		 * Konvertiere Spielfeld zu Object[][] data!
+		 */
+		String gegnerwahl;
+		if (spielerwahl.equals("x"))
+			gegnerwahl = "o";
+		else
+			gegnerwahl = "x";
+
+		for (int zeile = 0; zeile < spielfeld.length; zeile++) {
+			for (int spalte = 0; spalte < spielfeld[zeile].length; spalte++) {
+				if (spielfeld[zeile][spalte] != null && spielfeld[zeile][spalte].intValue() == -1) {
+					data[zeile][spalte] = gegnerwahl;
+				} else if (spielfeld[zeile][spalte] != null && spielfeld[zeile][spalte] == 1) {
+					data[zeile][spalte] = spielerwahl;
+				} else
+					data[zeile][spalte] = null;
+			}
+		}
+		panel1.repaint();
+	}
+
 	private static void spielendePopup(String gewinner) {
 		JOptionPane.showMessageDialog(frame, "Gewonnen hat: " + gewinner, "Spielende", 1);
 	}
 
-	private void savePopup() {
-		// Siegervariable ergänzen!
-		JOptionPane.showMessageDialog(frame, "Konfiguration gespeichert!", "Information", 1);
+	JTextField txtGegnername;
+	JPasswordField pwdKey;
+	JPasswordField pwdSecret;
+	JPasswordField pwdAppID;
+	String schnittstelle;
+	JTextField txtPath;
+	private JTable game;
+	private CommunicationController comControl;
+	private Intelligence ki;
+	private JRadioButton rdbtnPush;
+	private JRadioButton rdbtnFile;
+	private AccessDB db;
+	private Object[][] data_stat;
+	private JLabel lblSetgegner;
+	private boolean initialStart = true;
+	private JLabel lblSetsatz;
+	private JLabel lblSetstandfungi;
+	private JLabel lblSetstand;
+	private final String sep = " (ID ";
+
+	private JLabel lbl_chip_right_stat;
+
+	private JLabel lbl_chip_left_stat;
+
+	private JLabel lbl_chip_left;
+
+	private JLabel lbl_chip_right;
+
+	/**
+	 * Erzeuge Applikation.
+	 * 
+	 * @param db
+	 */
+	public GUIinit(Intelligence ki, AccessDB db) {
+		this.ki = ki;
+		this.db = db;
+		initialize();
 	}
-	// CODE ENDE NUR ZU TESTZWECKEN cornemrc
+
+	public Boolean BtnSelected(String comp) {
+		if (comp.equals("rdbtnPush"))
+			return rdbtnPush.isSelected();
+		else
+			return rdbtnFile.isSelected();
+	}
+
+	public int getSatz_id() {
+		return satz_id;
+	}
+
+	public void setGegner(String gegner) {
+		gegnerName = gegner;
+		txtGegnername.setText(gegner);
+		lblSetgegner.setText(gegner);
+	}
+
+	public void updateStats(Integer[][] spielfeld) {
+		/*
+		 * Konvertiere Spielfeld zu Object[][] data!
+		 */
+		String gegnerwahl;
+		if (spielerwahl.equals("x"))
+			gegnerwahl = "o";
+		else
+			gegnerwahl = "x";
+
+		for (int zeile = 0; zeile < spielfeld.length; zeile++) {
+			for (int spalte = 0; spalte < spielfeld[zeile].length; spalte++) {
+				if (spielfeld[zeile][spalte] != null && spielfeld[zeile][spalte].intValue() == -1) {
+					data_stat[zeile][spalte] = gegnerwahl;
+				} else if (spielfeld[zeile][spalte] != null && spielfeld[zeile][spalte] == 1) {
+					data_stat[zeile][spalte] = spielerwahl;
+				} else
+					data_stat[zeile][spalte] = null;
+			}
+		}
+	}
 
 	/**
 	 * Initialisiere die Inhalte des frames
 	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private void initialize() {
 		frame = new JFrame();
 		frame.setBounds(100, 100, 1280, 720);
@@ -645,39 +711,15 @@ public class GUIinit {
 		frame.setVisible(true);
 	}
 
-	protected void checkIcons() {
-		// Icons tauschen wegen Farbe
-		if (spielerwahl.equals("x")) {
-			URL tmpIcon1 = GUIinit.class.getResource("/red.png");
-			ImageIcon tmpImg1 = new ImageIcon(tmpIcon1);
-			lbl_chip_right_stat.setIcon(tmpImg1);
-			lbl_chip_right.setIcon(tmpImg1);
-			URL tmpIcon2 = GUIinit.class.getResource("/yellow.png");
-			ImageIcon tmpImg2 = new ImageIcon(tmpIcon2);
-			lbl_chip_left_stat.setIcon(tmpImg2);
-			lbl_chip_left.setIcon(tmpImg2);
-		} else {
-			URL tmpIcon1 = GUIinit.class.getResource("/red.png");
-			ImageIcon tmpImg1 = new ImageIcon(tmpIcon1);
-			lbl_chip_left_stat.setIcon(tmpImg1);
-			lbl_chip_left.setIcon(tmpImg1);
-			URL tmpIcon2 = GUIinit.class.getResource("/yellow.png");
-			ImageIcon tmpImg2 = new ImageIcon(tmpIcon2);
-			lbl_chip_right_stat.setIcon(tmpImg2);
-			lbl_chip_right.setIcon(tmpImg2);
-		}
-	}
-
-	public Boolean BtnSelected(String comp) {
-		if (comp.equals("rdbtnPush"))
-			return rdbtnPush.isSelected();
-		else
-			return rdbtnFile.isSelected();
-	}
-
 	private void reset() {
 		ki.reset();
 	}
+
+	private void savePopup() {
+		// Siegervariable ergänzen!
+		JOptionPane.showMessageDialog(frame, "Konfiguration gespeichert!", "Information", 1);
+	}
+	// CODE ENDE NUR ZU TESTZWECKEN cornemrc
 
 	private void startPlaying() {
 		/*------------------------------------*\
@@ -726,62 +768,26 @@ public class GUIinit {
 		}
 	}
 
-	public static void update(Integer[][] spielfeld) {
-		/*
-		 * Konvertiere Spielfeld zu Object[][] data!
-		 */
-		String gegnerwahl;
-		if (spielerwahl.equals("x"))
-			gegnerwahl = "o";
-		else
-			gegnerwahl = "x";
-
-		for (int zeile = 0; zeile < spielfeld.length; zeile++) {
-			for (int spalte = 0; spalte < spielfeld[zeile].length; spalte++) {
-				if (spielfeld[zeile][spalte] != null && spielfeld[zeile][spalte].intValue() == -1) {
-					data[zeile][spalte] = gegnerwahl;
-				} else if (spielfeld[zeile][spalte] != null && spielfeld[zeile][spalte] == 1) {
-					data[zeile][spalte] = spielerwahl;
-				} else
-					data[zeile][spalte] = null;
-			}
+	protected void checkIcons() {
+		// Icons tauschen wegen Farbe
+		if (spielerwahl.equals("x")) {
+			URL tmpIcon1 = GUIinit.class.getResource("/red.png");
+			ImageIcon tmpImg1 = new ImageIcon(tmpIcon1);
+			lbl_chip_right_stat.setIcon(tmpImg1);
+			lbl_chip_right.setIcon(tmpImg1);
+			URL tmpIcon2 = GUIinit.class.getResource("/yellow.png");
+			ImageIcon tmpImg2 = new ImageIcon(tmpIcon2);
+			lbl_chip_left_stat.setIcon(tmpImg2);
+			lbl_chip_left.setIcon(tmpImg2);
+		} else {
+			URL tmpIcon1 = GUIinit.class.getResource("/red.png");
+			ImageIcon tmpImg1 = new ImageIcon(tmpIcon1);
+			lbl_chip_left_stat.setIcon(tmpImg1);
+			lbl_chip_left.setIcon(tmpImg1);
+			URL tmpIcon2 = GUIinit.class.getResource("/yellow.png");
+			ImageIcon tmpImg2 = new ImageIcon(tmpIcon2);
+			lbl_chip_right_stat.setIcon(tmpImg2);
+			lbl_chip_right.setIcon(tmpImg2);
 		}
-		panel1.repaint();
-	}
-
-	public void updateStats(Integer[][] spielfeld) {
-		/*
-		 * Konvertiere Spielfeld zu Object[][] data!
-		 */
-		String gegnerwahl;
-		if (spielerwahl.equals("x"))
-			gegnerwahl = "o";
-		else
-			gegnerwahl = "x";
-
-		for (int zeile = 0; zeile < spielfeld.length; zeile++) {
-			for (int spalte = 0; spalte < spielfeld[zeile].length; spalte++) {
-				if (spielfeld[zeile][spalte] != null && spielfeld[zeile][spalte].intValue() == -1) {
-					data_stat[zeile][spalte] = gegnerwahl;
-				} else if (spielfeld[zeile][spalte] != null && spielfeld[zeile][spalte] == 1) {
-					data_stat[zeile][spalte] = spielerwahl;
-				} else
-					data_stat[zeile][spalte] = null;
-			}
-		}
-	}
-
-	public void setGegner(String gegner) {
-		gegnerName = gegner;
-		txtGegnername.setText(gegner);
-		lblSetgegner.setText(gegner);
-	}
-
-	public int getSatz_id() {
-		return satz_id;
-	}
-
-	public static void errorPusher() {
-		JOptionPane.showMessageDialog(frame, "Pusher konnte keine Verbindung herstellen!", "Connection Error", 1);
 	}
 }

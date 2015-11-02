@@ -17,6 +17,42 @@ public class ConfigFile {
 		this.gui = init;
 	}
 
+	public void lesen() throws IOException {
+		try {
+			reader = new FileReader("config.ini");
+			BufferedReader br = new BufferedReader(reader);
+
+			gui.setGegner(br.readLine());
+			gui.pwdKey.setText(br.readLine());
+			gui.pwdSecret.setText(br.readLine());
+			gui.pwdAppID.setText(br.readLine());
+			String zeile3 = br.readLine();
+			if (zeile3.equals("Push")) {
+				gui.schnittstelle = "Push";
+				gui.txtPath.setText("Bei File bitte Pfad angeben");
+			} else {
+				String[] splitarray = zeile3.split("_");
+				gui.schnittstelle = "File";
+				gui.txtPath.setText(splitarray[1]);
+			}
+			String zeile4 = br.readLine();
+			if (zeile4.equals("x")) {
+				GUIinit.spielerwahl = "x";
+			} else {
+				GUIinit.spielerwahl = "o";
+			}
+
+			br.close();
+		} catch (FileNotFoundException e) {
+			System.err.println("Keine Konfigurationsdatei zum Einlesen vorhanden!");
+		}
+
+	}
+
+	// Beginn LESEN
+	// Buffered Reader liest die einzelnen Zeilen der ini Datei aus
+	// Die einzelnen Variablen werden anschließend entsprechend befüllt
+
 	public void schreiben() {
 
 		// Datei anlegen
@@ -49,42 +85,6 @@ public class ConfigFile {
 		catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-
-	// Beginn LESEN
-	// Buffered Reader liest die einzelnen Zeilen der ini Datei aus
-	// Die einzelnen Variablen werden anschließend entsprechend befüllt
-
-	public void lesen() throws IOException {
-		try {
-			reader = new FileReader("config.ini");
-			BufferedReader br = new BufferedReader(reader);
-
-			gui.setGegner(br.readLine());
-			gui.pwdKey.setText(br.readLine());
-			gui.pwdSecret.setText(br.readLine());
-			gui.pwdAppID.setText(br.readLine());
-			String zeile3 = br.readLine();
-			if (zeile3.equals("Push")) {
-				gui.schnittstelle = "Push";
-				gui.txtPath.setText("Bei File bitte Pfad angeben");
-			} else {
-				String[] splitarray = zeile3.split("_");
-				gui.schnittstelle = "File";
-				gui.txtPath.setText(splitarray[1]);
-			}
-			String zeile4 = br.readLine();
-			if (zeile4.equals("x")) {
-				gui.spielerwahl = "x";
-			} else {
-				gui.spielerwahl = "o";
-			}
-
-			br.close();
-		} catch (FileNotFoundException e) {
-			System.err.println("Keine Konfigurationsdatei zum Einlesen vorhanden!");
-		}
-
 	}
 
 }
