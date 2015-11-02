@@ -127,6 +127,7 @@ public class FileImpl implements FileController {
 
 	}
 
+	@Override
 	public void stop() {
 		((ChangeListener) t).setInterrupt();
 		t.interrupt();
